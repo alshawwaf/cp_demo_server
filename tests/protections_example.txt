@@ -1,0 +1,9 @@
+# IPS Protection Names
+# One protection name per line
+# Lines starting with # are ignored
+
+MS_IIS_WebDAV_nPropfind
+CVE-2021-44228_Log4j_JNDI
+SQL_Injection_Generic
+XSS_Cross_Site_Scripting
+Directory_Traversal_Attack

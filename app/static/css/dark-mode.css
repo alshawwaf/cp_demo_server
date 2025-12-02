@@ -1,0 +1,59 @@
+[data-theme="dark"] {
+    background-color: #666666 !important;
+    color: #eee;
+  }
+  
+  [data-theme="dark"] .bg-light {
+    background-color: #333 !important;
+  }
+  
+  [data-theme="dark"] .bg-white {
+    background-color: #000 !important;
+  }
+  
+  [data-theme="dark"] .bg-black {
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] th {
+    background-color: #343a40 !important;
+    border-color: #ffffff !important;
+  }
+  
+  [data-theme="dark"] .odd {
+    color: #e6e6e6 !important;
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .even {
+    color: #e6e6e6 !important;
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .modal-header {
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .modal-body {
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .modal-footer {
+    background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .form-row {
+      background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .scrollable-menu  {
+          background-color: #666666 !important;
+  }
+  
+  [data-theme="dark"] .text-danger {
+      color: white !important;
+  }
+  [data-theme="dark"] .card {
+      color: white !important;
+  }
+  

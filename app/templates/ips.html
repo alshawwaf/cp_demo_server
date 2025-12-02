@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section with Gradient -->
+<div class="card border-0 shadow-lg mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>IPS Protections</h2>
+                <p class="mb-0 opacity-75">Intrusion Prevention System - Attack Simulation</p>
+            </div>
+            
+            <!-- Target IP Input Group -->
+            <div class="d-flex align-items-center gap-2 bg-white bg-opacity-25 rounded p-3">
+                <label for="target_ip" class="form-label mb-0 fw-medium text-nowrap">Target IP:</label>
+                <input type="text" id="target_ip" name="target_ip" class="form-control form-control-sm bg-white"
+                    style="width: 200px;" placeholder="192.168.1.1" value="{{ saved_ip }}" required>
+                
+                <form action="{{ url_for('clear_target_ip') }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-light" title="Clear Target IP">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Protections Table -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4 pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2"></i>Protection Library</h5>
+            <button id="runAllBtn" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                <i class="bi bi-play-circle-fill me-2"></i>Run All Sequentially
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="ips_data" class="table table-hover align-middle mb-0">
+                <thead style="background: linear-gradient(to right, #f8f9fa, #e9ecef);">
+                    <tr>
+                        <th scope="col" class="text-center py-3" style="width: 80px;">Action</th>
+                        <th scope="col" class="py-3">Protection Name</th>
+                        <th scope="col" class="py-3" style="width: 100px;">Industry</th>
+                        <th scope="col" class="py-3" style="width: 110px;">Confidence</th>
+                        <th scope="col" class="py-3" style="width: 110px;">Severity</th>
+                        <th scope="col" class="py-3" style="width: 110px;">Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in data %}
+                    <tr data-protection-name="{{ line[0] }}" class="border-bottom" style="transition: all 0.2s;">
+                        <td class="text-center">
+                            <form action="{{ url_for('ips') }}" method="POST" class="d-inline">
+                                <input type="hidden" name="protection_name" value="{{ line[0] }}">
+                                <input type="hidden" name="target_ip" class="target_ip_form" value="">
+                                <button class="btn btn-sm btn-outline-primary shadow-sm" type="submit" title="Run {{ line[0] }}">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                        <td class="fw-medium">{{ line[0] }}</td>
+                        <td>
+                            <span class="badge rounded-pill" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" title="{{ line[1] }}">
+                                {{ line[1] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if line[5] == 'High' %}
+                                <span class="badge bg-success rounded-pill px-3"><i class="bi bi-star-fill me-1"></i>High</span>
+                            {% elif line[5] == 'Medium' %}
+                                <span class="badge bg-warning text-dark rounded-pill px-3"><i class="bi bi-star-half me-1"></i>Medium</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill px-3"><i class="bi bi-star me-1"></i>Low</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if line[6] == 'Critical' %}
+                                <span class="badge rounded-pill px-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><i class="bi bi-exclamation-triangle-fill me-1"></i>Critical</span>
+                            {% elif line[6] == 'High' %}
+                                <span class="badge bg-danger rounded-pill px-3"><i class="bi bi-exclamation-circle-fill me-1"></i>High</span>
+                            {% else %}
+                                <span class="badge bg-info rounded-pill px-3">{{ line[6] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border rounded-pill px-3">
+                                <i class="bi bi-speedometer2 me-1"></i>{{ line[7] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards - Compact Version -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="card-body text-white text-center py-2">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.5rem; opacity: 0.9;"></i>
+                    <div class="text-start">
+                        <h5 class="mb-0 fw-bold">{{ data|length }}</h5>
+                        <small class="opacity-75">Total Protections</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="card-body text-white text-center py-2">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-fire" style="font-size: 1.5rem; opacity: 0.9;"></i>
+                    <div class="text-start">
+                        <h5 class="mb-0 fw-bold" id="criticalCount">0</h5>
+                        <small class="opacity-75">Critical Severity</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="card-body text-white text-center py-2">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-shield-check" style="font-size: 1.5rem; opacity: 0.9;"></i>
+                    <div class="text-start">
+                        <h5 class="mb-0 fw-bold" id="highConfidence">0</h5>
+                        <small class="opacity-75">High Confidence</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="card-body text-white text-center py-2">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-cpu" style="font-size: 1.5rem; opacity: 0.9;"></i>
+                    <div class="text-start">
+                        <h5 class="mb-0 fw-bold">Active</h5>
+                        <small class="opacity-75">System Status</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sequential Attacks Modal -->
+<div class="modal fade" id="sequentialAttacksModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-play-circle-fill me-2"></i>Sequential Attack Execution</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="d-flex justify-content-between align-items-center text-white">
+                                <span class="fw-bold">Status:</span>
+                                <span id="attackStatus" class="badge bg-white text-dark">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <div class="d-flex justify-content-between align-items-center text-white">
+                                <span class="fw-bold">Progress:</span>
+                                <span id="attackProgress" class="fw-bold">0 / 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Log Container -->
+                <div id="attackLog" class="border rounded p-3" style="max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.875rem; background: rgba(0,0,0,0.02);">
+                    <div class="text-muted">Waiting to start...</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" id="pauseResumeBtn" class="btn btn-warning shadow-sm" disabled>
+                    <i class="bi bi-pause-fill me-1"></i>Pause
+                </button>
+                <button type="button" id="cancelBtn" class="btn btn-danger shadow-sm" disabled>
+                    <i class="bi bi-x-circle-fill me-1"></i>Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Calculate statistics
+        let criticalCount = 0;
+        let highConfidence = 0;
+        
+        {% for line in data %}
+            {% if line[6] == 'Critical' %}
+                criticalCount++;
+            {% endif %}
+            {% if line[5] == 'High' %}
+                highConfidence++;
+            {% endif %}
+        {% endfor %}
+        
+        $('#criticalCount').text(criticalCount);
+        $('#highConfidence').text(highConfidence);
+
+        // Initialize DataTables with custom styling
+        const table = $('#ips_data').DataTable({
+            scrollY: '60vh',
+            scrollCollapse: true,
+            colReorder: true,
+            autoWidth: false,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search protections...",
+                lengthMenu: "Show _MENU_ entries"
+            },
+            dom: '<"d-flex justify-content-between align-items-center mb-3 px-3 pt-3"fl>rt<"d-flex justify-content-between align-items-center mt-3 px-3 pb-3"ip>',
+            drawCallback: function () {
+                updateTargetIpForms();
+            }
+        });
+
+        // Target IP Sync Logic
+        function updateTargetIpForms() {
+            const targetIp = $('#target_ip').val();
+            $('.target_ip_form').val(targetIp);
+        }
+
+        $('#target_ip').on('input', updateTargetIpForms);
+        updateTargetIpForms();
+
+        // Add hover effect to table rows
+        $('#ips_data tbody tr').hover(
+            function() { $(this).css('background', 'linear-gradient(to right, #f8f9fa, #ffffff)'); },
+            function() { $(this).css('background', ''); }
+        );
+
+        // Sequential Attack Logic
+        let attackQueue = [];
+        let currentIndex = 0;
+        let isPaused = false;
+        let isCancelled = false;
+        const modal = new bootstrap.Modal(document.getElementById('sequentialAttacksModal'));
+
+        $('#runAllBtn').on('click', function() {
+            const targetIp = $('#target_ip').val();
+            if (!targetIp) {
+                showNotification('Please enter a target IP address.', 'warning');
+                return;
+            }
+
+            attackQueue = [];
+            $('#ips_data tbody tr').each(function() {
+                const protectionName = $(this).data('protection-name');
+                if (protectionName) {
+                    attackQueue.push(protectionName);
+                }
+            });
+
+            if (attackQueue.length === 0) {
+                showNotification('No attacks found to run.', 'warning');
+                return;
+            }
+
+            currentIndex = 0;
+            isPaused = false;
+            isCancelled = false;
+
+            $('#attackProgress').text(`0 / ${attackQueue.length}`);
+            $('#attackStatus').removeClass().addClass('badge bg-info text-white').text('Running');
+            $('#attackLog').html('<div class="text-info"><i class="bi bi-arrow-repeat spin me-2"></i>Starting sequential execution...</div>');
+            $('#pauseResumeBtn').prop('disabled', false).html('<i class="bi bi-pause-fill me-1"></i>Pause');
+            $('#cancelBtn').prop('disabled', false);
+
+            modal.show();
+            executeNextAttack(targetIp);
+        });
+
+        function executeNextAttack(targetIp) {
+            if (isCancelled) {
+                $('#attackStatus').removeClass().addClass('badge bg-danger text-white').text('Cancelled');
+                $('#pauseResumeBtn').prop('disabled', true);
+                $('#cancelBtn').prop('disabled', true);
+                return;
+            }
+
+            if (isPaused) {
+                $('#attackStatus').removeClass().addClass('badge bg-warning text-dark').text('Paused');
+                return;
+            }
+
+            if (currentIndex >= attackQueue.length) {
+                $('#attackStatus').removeClass().addClass('badge bg-success text-white').text('Completed');
+                $('#pauseResumeBtn').prop('disabled', true);
+                $('#cancelBtn').prop('disabled', true);
+                appendLog('<div class="text-success fw-bold mt-3 p-2 rounded" style="background: rgba(25, 135, 84, 0.1);"><i class="bi bi-check-circle-fill me-2"></i>All attacks completed successfully!</div>');
+                return;
+            }
+
+            const protectionName = attackQueue[currentIndex];
+            $('#attackProgress').text(`${currentIndex + 1} / ${attackQueue.length}`);
+            appendLog(`<div class="text-primary my-1"><i class="bi bi-arrow-right-circle me-2"></i><strong>${protectionName}</strong></div>`);
+
+            fetch('/api/run_attack', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    protection_name: protectionName,
+                    target_ip: targetIp
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusClass = data.success ? 'text-success' : 'text-danger';
+                const icon = data.success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+                const bgClass = data.success ? 'rgba(25, 135, 84, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+                appendLog(`<div class="${statusClass} mb-2 p-2 rounded" style="background: ${bgClass};"><i class="bi ${icon} me-2"></i>${data.message} <span class="badge bg-secondary ms-2">${data.status_code}</span></div>`);
+                
+                currentIndex++;
+                setTimeout(() => executeNextAttack(targetIp), 100);
+            })
+            .catch(error => {
+                appendLog(`<div class="text-danger mb-2 p-2 rounded" style="background: rgba(220, 53, 69, 0.1);"><i class="bi bi-x-circle-fill me-2"></i>Error: ${error.message}</div>`);
+                currentIndex++;
+                setTimeout(() => executeNextAttack(targetIp), 100);
+            });
+        }
+
+        function appendLog(html) {
+            const logContainer = $('#attackLog');
+            logContainer.append(html);
+            logContainer.scrollTop(logContainer[0].scrollHeight);
+        }
+
+        $('#pauseResumeBtn').on('click', function() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                $(this).html('<i class="bi bi-play-fill me-1"></i>Resume');
+                $('#attackStatus').removeClass().addClass('badge bg-warning text-dark').text('Paused');
+            } else {
+                $(this).html('<i class="bi bi-pause-fill me-1"></i>Pause');
+                $('#attackStatus').removeClass().addClass('badge bg-info text-white').text('Running');
+                executeNextAttack($('#target_ip').val());
+            }
+        });
+
+        $('#cancelBtn').on('click', function() {
+            isCancelled = true;
+            $('#attackStatus').removeClass().addClass('badge bg-danger text-white').text('Cancelled');
+            $('#pauseResumeBtn').prop('disabled', true);
+            $(this).prop('disabled', true);
+            appendLog('<div class="text-danger fw-bold mt-3 p-2 rounded" style="background: rgba(220, 53, 69, 0.1);"><i class="bi bi-x-octagon-fill me-2"></i>Execution cancelled by user</div>');
+            
+            // Close modal after a short delay
+            setTimeout(() => modal.hide(), 1000);
+        });
+    });
+</script>
+{% endblock %}

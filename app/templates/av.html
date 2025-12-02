@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- File Browser Section -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100 border-danger">
+            <div class="card-header bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-folder2-open me-2"></i>Malware Files</h5>
+                    <span class="badge bg-danger">Real Malware - Handle with Care!</span>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb breadcrumb-chevron p-3 bg-light rounded-3">
+                        <li class="breadcrumb-item">
+                            <a href="/av" class="text-decoration-none fw-bold">
+                                <i class="bi bi-house-door-fill"></i> Home
+                            </a>
+                        </li>
+                        {% for folder in breadcrumbs %}
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <a href="{{ folder.url }}" class="text-decoration-none text-muted">{{ folder.name }}</a>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                </nav>
+
+                <!-- Files Grid -->
+                <div class="row g-3">
+                    {% for item in files %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card h-100 border hover-card text-center">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center p-3">
+                                {% if item.is_file %}
+                                    <i class="bi bi-file-earmark-binary text-danger mb-2" style="font-size: 2.5rem;"></i>
+                                    <h6 class="card-title text-truncate w-100 small mb-2" title="{{ item.name }}">{{ item.name }}</h6>
+                                    <a href="{{ (request.path + '/' if request.path != '/' else '') + item.name }}" 
+                                       class="btn btn-sm btn-outline-danger mt-auto w-100">
+                                        <i class="bi bi-download me-1"></i> Download
+                                    </a>
+                                {% else %}
+                                    <a href="{{ (request.path + '/' if request.path != '/' else '') + item.name }}" class="text-decoration-none text-dark w-100 h-100 d-flex flex-column align-items-center">
+                                        <i class="bi bi-folder-fill text-warning mb-2" style="font-size: 2.5rem;"></i>
+                                        <h6 class="card-title text-truncate w-100 small">{{ item.name }}</h6>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: IoC Feeds -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-shield-check me-2"></i>IoC Feeds</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Download Indicator of Compromise (IoC) files for your security appliances.</p>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('download_ioc', _external=True) }}" class="btn btn-primary" target="_blank">
+                        <i class="bi bi-file-earmark-code me-2"></i>Download IoC CSV
+                    </a>
+                    
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" value="{{ url_for('download_ioc', _external=True) }}" id="iocUrl" readonly>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" id="copyButton">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <div id="copyMessage" class="text-success small text-center" style="display:none;">
+                        <i class="bi bi-check-circle me-1"></i>URL Copied!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-check me-2"></i>IoC Test Files</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Download a test PDF file containing benign indicators for verification.</p>
+                <div class="d-grid">
+                    <a href="{{url_for('download_ioc_pdf', _external=True)}}" class="btn btn-outline-success" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Download Test PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('copyButton').addEventListener('click', function () {
+        const urlText = document.getElementById('iocUrl');
+        urlText.select();
+        urlText.setSelectionRange(0, 99999); // For mobile devices
+
+        navigator.clipboard.writeText(urlText.value).then(function () {
+            const msg = document.getElementById('copyMessage');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2000);
+        }).catch(function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+</script>
+{% endblock %}

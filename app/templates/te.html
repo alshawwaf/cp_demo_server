@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Generator Form Section -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus me-2"></i>Generate Files</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/generate" id="fileGenForm">
+                    
+                    <!-- File Types -->
+                    <div class="mb-4">
+                        <label for="file_types" class="form-label fw-medium">Select File Types</label>
+                        <select name="file_types" id="file_types" multiple class="form-select" size="5" required>
+                            {% for file_type in file_types %}
+                            <option value="{{ file_type }}">{{ file_type.upper() }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Hold Ctrl/Cmd to select multiple.</div>
+                    </div>
+
+                    <!-- Dynamic Options -->
+                    <div class="vstack gap-3">
+                        <!-- Common Options -->
+                        <div id="include_image" style="display: none;">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="include_image" id="switch_image">
+                                <label class="form-check-label" for="switch_image">Include Image</label>
+                            </div>
+                        </div>
+
+                        <div id="url_type" style="display: none;">
+                            <label for="url_type_select" class="form-label fw-medium">URL Type</label>
+                            <select name="url_type" id="url_type_select" class="form-select form-select-sm">
+                                <option value="none">No URL</option>
+                                <option value="clean">Random URL</option>
+                                <option value="malicious">Malicious URL</option>
+                            </select>
+                        </div>
+
+                        <div id="include_sensitive_link" style="display: none;">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="include_sensitive_link" id="switch_sensitive">
+                                <label class="form-check-label" for="switch_sensitive">Include Sensitive Link (SMB)</label>
+                            </div>
+                        </div>
+
+                        <!-- PDF Specific Options -->
+                        <div id="pdf-options-container" class="border-top pt-3 mt-2" style="display: none;">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-3">PDF Options</h6>
+                            
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_video" id="switch_video">
+                                <label class="form-check-label" for="switch_video">Include Video</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_audio" id="switch_audio">
+                                <label class="form-check-label" for="switch_audio">Include Audio</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_3d" id="switch_3d">
+                                <label class="form-check-label" for="switch_3d">Include 3D Art</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_script" id="switch_script">
+                                <label class="form-check-label" for="switch_script">Include Embedded Script</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_pdf" id="switch_pdf">
+                                <label class="form-check-label" for="switch_pdf">Include External PDF</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_external_app" id="switch_app">
+                                <label class="form-check-label" for="switch_app">Launch External App</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_data_submission" id="switch_data">
+                                <label class="form-check-label" for="switch_data">Submit Data Remotely</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-gear-fill me-2"></i>Generate File(s)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generated Files List -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Generated Files</h5>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#emailConfigModal">
+                        <i class="bi bi-envelope-gear me-1"></i>Config Email
+                    </button>
+                    
+                    <form method="POST" action="/delete_all" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" {% if not files %}disabled{% endif %}>
+                            <i class="bi bi-trash me-1"></i>Delete All
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="generated_files_table" class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                            <tr>
+                                <td class="fw-medium">{{ file.name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ file.type }}</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('download_file', filename=file.name) }}" class="btn btn-outline-primary" title="Download">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        
+                                        <button type="button" class="btn btn-outline-info send-email-btn" data-file-name="{{ file.name }}" title="Send Email">
+                                            <i class="bi bi-envelope"></i>
+                                        </button>
+
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#details-{{ loop.index }}" title="Details">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+
+                                        <form method="POST" action="/delete/{{ file.name }}" class="d-inline" onsubmit="return confirm('Delete this file?');">
+                                            <button type="submit" class="btn btn-outline-danger rounded-end" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Collapsible Details -->
+                                    <div class="collapse mt-2" id="details-{{ loop.index }}">
+                                        <div class="card card-body bg-light small p-2">
+                                            <ul class="list-unstyled mb-0">
+                                                <li><strong>URL:</strong> {{ file.url_type or "None" }}</li>
+                                                <li><strong>Image:</strong> {{ "Yes" if file.include_image == "on" else "No" }}</li>
+                                                <li><strong>Script:</strong> {{ "Yes" if file.include_script == "on" else "No" }}</li>
+                                                <li><strong>Sensitive Link:</strong> {{ "Yes" if file.include_sensitive_link == "on" else "No" }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Config Modal -->
+<div class="modal fade" id="emailConfigModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configure Email Server</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="emailConfigForm">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">SMTP Server</label>
+                            <input type="text" class="form-control" id="smtp_server" name="smtp_server" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-control" id="port" name="port" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Sender Email</label>
+                            <input type="email" class="form-control" id="sender_email" name="sender_email" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Recipient Email</label>
+                            <input type="email" class="form-control" id="default_recipient" name="default_recipient">
+                        </div>
+                         <div class="col-md-12">
+                            <label class="form-label">Encryption</label>
+                            <select class="form-select" id="encryption_type" name="encryption_type">
+                                <option value="STARTTLS">STARTTLS</option>
+                                <option value="SSL">SSL/TLS</option>
+                                <option value="None">None</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEmailConfig">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#generated_files_table').DataTable({
+            responsive: true,
+            language: { searchPlaceholder: "Search files..." },
+            dom: 'frtip'
+        });
+
+        // File Type Logic
+        $('#file_types').on('change', function () {
+            const selected = $(this).val() || [];
+            const isPdf = selected.some(t => t.includes('pdf') || t === 'all');
+            const isDoc = selected.some(t => ['docx', 'pptx', 'xlsx', 'rtf'].some(ext => t.includes(ext)));
+            const isImg = selected.some(t => ['jpg', 'gif', 'bmp', 'png', 'tiff'].some(ext => t.includes(ext)));
+
+            // Reset visibility
+            $('#pdf-options-container, #url_type, #include_image, #include_sensitive_link').hide();
+
+            if (isPdf) {
+                $('#pdf-options-container, #url_type, #include_image, #include_sensitive_link').fadeIn();
+            } else if (isDoc) {
+                $('#url_type, #include_image, #include_sensitive_link').fadeIn();
+            } else if (isImg) {
+                $('#include_sensitive_link').fadeIn();
+            }
+        });
+
+        // Email Config Loading
+        $('#emailConfigModal').on('show.bs.modal', function () {
+            fetch('/get_email_config')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const c = data.data;
+                        $('#smtp_server').val(c.smtp_server);
+                        $('#port').val(c.port);
+                        $('#sender_email').val(c.sender_email);
+                        $('#default_recipient').val(c.default_recipient);
+                        $('#encryption_type').val(c.encryption_type || 'STARTTLS');
+                    }
+                });
+        });
+
+        // Save Email Config
+        $('#saveEmailConfig').click(function () {
+            const config = {
+                smtp_server: $('#smtp_server').val(),
+                port: $('#port').val(),
+                sender_email: $('#sender_email').val(),
+                default_recipient: $('#default_recipient').val(),
+                encryption_type: $('#encryption_type').val()
+            };
+
+            fetch("/save_email_config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(config)
+            })
+            .then(r => r.json())
+            .then(data => {
+                showNotification(data.message, data.status === "success" ? "success" : "danger");
+                if (data.status === "success") {
+                    bootstrap.Modal.getInstance(document.getElementById('emailConfigModal')).hide();
+                }
+            });
+        });
+
+        // Send Email
+        $('.send-email-btn').click(function () {
+            const btn = $(this);
+            const originalHtml = btn.html();
+            btn.html('<span class="spinner-border spinner-border-sm"></span>').prop('disabled', true);
+            
+            const fileName = btn.data('file-name');
+            fetch(`/send_email/${fileName}`, { method: "POST" })
+                .then(r => r.json())
+                .then(data => {
+                    showNotification(data.message, data.status === "success" ? "success" : "danger");
+                })
+                .finally(() => {
+                    btn.html(originalHtml).prop('disabled', false);
+                });
+        });
+    });
+</script>
+{% endblock %}

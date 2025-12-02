@@ -1,0 +1,9 @@
+{
+    "smtp_server": "203.0.113.250",
+    "port": "25",
+    "sender_email": "info@americas-ses.com",
+    "encryption_type": "None",
+    "default_recipient": "cpadmin@americas-ses.com",
+    "email_subject": "Generated file is attached",
+    "email_body": "File Generator Email Service"
+}

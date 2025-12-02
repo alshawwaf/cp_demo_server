@@ -1,0 +1,9 @@
+#! DESCRIPTION = IoC Demo,,,,,,
+#! REFERENCE = SBT,,,,,,
+"#      All lines beginning  ""#"" are comments",,,,,,
+"#      All lines beginning  ""#!"" are metadata read by the SW",,,,,,
+"# UNIQ-NAME,VALUE,TYPE,CONFIDENCE,SEVERITY,PRODUCT,COMMENT",,,,,,
+block_md5,20b2ca0d0694fdc37e3fb3f55754bdd4,MD5,high,high,AV,ioc_test_md5
+block_url,http://example.com,URL,high,high,AV,ioc_test_url
+block_domain,stamdomain.com,domain,high,high,AB,ioc_test_domain
+block_ip,4.2.2.1,IP,high,medium,AB,ioc_block_ip

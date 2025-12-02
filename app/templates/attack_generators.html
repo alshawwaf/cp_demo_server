@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- 
+    Attack Generators Page
+    - Provides a user interface to launch various types of network attacks.
+    - Features include selecting attack types, specifying target details, and monitoring attack progress.
+    - Incorporates dynamic form elements that appear based on user selections.
+-->
+<div class="container bg-dark text-light mt-4">
+    <br>
+    <h2>Attack Generators</h2>
+    <form id="attackForm" class="mt-4">
+        <!-- Attack Type Selection -->
+        <div class="form-group">
+            <label for="attack_type">Select Attack Type:</label>
+            <!-- 
+                Dropdown to select the type of attack.
+                - Each option represents a different attack method.
+                - The 'required' attribute ensures that a selection is made before form submission.
+            -->
+            <select class="form-control" id="attack_type" name="attack_type" required>
+                <option value="icmp_flood">ICMP Flood</option>
+                <option value="syn_flood">SYN Flood</option>
+                <option value="arp_poison">ARP Poison</option>
+                <option value="dns_spoof">DNS Spoof</option>
+                <option value="dhcp_starvation">DHCP Starvation</option>
+                <option value="ping_of_death">Ping of Death</option>
+                <option value="slowloris">Slowloris Attack</option>
+                <option value="custom_attack">Custom Payload Attack</option>
+                <option value="udp_flood">UDP Flood</option>
+                <option value="http_flood">HTTP Flood</option>
+                <option value="ntp_amplification">NTP Amplification</option>
+            </select>
+        </div>
+
+        <!-- Custom Payload Input (Initially Hidden) -->
+        <div class="form-group" id="custom_payload_group" style="display: none;">
+            <label for="custom_payload">Custom Payload:</label>
+            <!-- 
+                Textarea for users to input a custom payload.
+                - Only visible when 'Custom Payload Attack' is selected.
+                - Provides flexibility for advanced users to specify attack parameters.
+            -->
+            <textarea class="form-control" id="custom_payload" name="custom_payload" rows="3"
+                placeholder="Enter your custom payload here"></textarea>
+        </div>
+
+        <!-- Target IP Address Input -->
+        <div class="form-group">
+            <label for="target_ip">Target IP Address:</label>
+            <!-- 
+                Input field for the target's IP address.
+                - 'required' attribute ensures that a value is provided.
+                - Placeholder provides an example format.
+                - Consider adding pattern validation for IP addresses for enhanced security.
+            -->
+            <input type="text" class="form-control" id="target_ip" name="target_ip" placeholder="e.g., 192.168.1.1"
+                required>
+        </div>
+
+        <!-- Target Port Input (Initially Hidden) -->
+        <div class="form-group" id="port_group" style="display: none;">
+            <label for="port">Target Port:</label>
+            <!-- 
+                Input field for specifying the target port.
+                - Only visible for attack types that require a port specification.
+                - 'type="number"' ensures that only numeric values are entered.
+                - Placeholder provides an example port number.
+            -->
+            <input type="number" class="form-control" id="port" name="port" placeholder="e.g., 80">
+        </div>
+
+        <!-- Submit Button to Launch Attack -->
+        <button type="submit" class="btn btn-primary mt-3">Launch Attack</button>
+    </form>
+
+    <!-- Button to Stop Ongoing Attack -->
+    <div class="mt-4">
+        <!-- 
+            Button to stop the currently running attack.
+            - Disabled by default and enabled only when an attack is active.
+            - Enhances user control over ongoing processes.
+        -->
+        <button id="stopAttackButton" class="btn btn-danger" disabled>Stop Attack</button>
+    </div>
+
+    <!-- Progress Status Alert -->
+    <div class="alert alert-info mt-4" id="progressStatus">
+        Waiting for an attack to start...
+    </div>
+
+    <!-- Modal for More Details -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <!-- 
+                Modal content styled with dark background and light text to match the overall theme.
+            -->
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Attack Details</h5>
+                    <!-- 
+                        Close button for the modal.
+                        - 'btn-close' is a Bootstrap class for close buttons.
+                        - 'aria-label' improves accessibility by describing the button's function.
+                    -->
+                    <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <!-- 
+                    Modal body where detailed information about the attack will be displayed.
+                    - Content is dynamically injected via JavaScript.
+                -->
+                <div class="modal-body" id="detailsContent"></div>
+                <div class="modal-footer">
+                    <!-- 
+                        Button to close the modal.
+                        - 'btn-secondary' provides a neutral styling.
+                    -->
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+</div>
+
+<!-- 
+    JavaScript Section
+    - Handles form interactions, attack initiation, progress polling, and attack termination.
+    - Ensures a responsive and interactive user experience.
+-->
+<script>
+    // Variable to store the current attack's ID
+    let currentAttackId = null;
+
+    // Define which attacks require a port input
+    const attacksRequiringPort = [
+        "syn_flood",
+        "udp_flood",
+        "slowloris",
+        "http_flood"
+    ];
+
+    /**
+     * Event Listener for Attack Type Selection
+     * - Shows or hides form fields based on the selected attack type.
+     * - Enhances user experience by displaying relevant options only.
+     */
+    document.querySelector("#attack_type").addEventListener("change", function () {
+        const attackType = this.value;
+        const customPayloadGroup = document.querySelector("#custom_payload_group");
+        const portGroup = document.querySelector("#port_group");
+
+        // Show or hide the custom payload field based on attack type
+        customPayloadGroup.style.display = attackType === "custom_attack" ? "block" : "none";
+
+        // Show or hide the port field based on whether the attack type requires a port
+        portGroup.style.display = attacksRequiringPort.includes(attackType) ? "block" : "none";
+    });
+
+    /**
+     * Event Listener for Form Submission
+     * - Prevents default form submission behavior.
+     * - Sends a POST request to initiate the attack with specified parameters.
+     * - Updates the UI to reflect the attack's initiation and starts polling for progress.
+     */
+    document.querySelector("#attackForm").addEventListener("submit", function (e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        // Retrieve form values
+        const attackType = document.querySelector("#attack_type").value;
+        const targetIp = document.querySelector("#target_ip").value;
+        const port = document.querySelector("#port").value;
+        const customPayload = document.querySelector("#custom_payload").value;
+
+        // Send a POST request to start the attack
+        fetch("/start_attack", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                attack_type: attackType,
+                target_ip: targetIp,
+                port: attacksRequiringPort.includes(attackType) ? port : null,
+                custom_payload: attackType === "custom_attack" ? customPayload : null,
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Store the attack ID returned from the server
+                currentAttackId = data.attack_id;
+
+                // Update the progress status
+                document.querySelector("#progressStatus").innerText = "Attack started...";
+
+                // Enable the 'Stop Attack' button
+                document.querySelector("#stopAttackButton").disabled = false;
+
+                // Start polling for attack progress
+                pollProgress(currentAttackId);
+            })
+            .catch(error => {
+                // Display error message in the progress status alert
+                document.querySelector("#progressStatus").innerText = `Error: ${error.message}`;
+            });
+    });
+
+    /**
+     * Event Listener for 'Stop Attack' Button
+     * - Sends a POST request to terminate the ongoing attack.
+     * - Updates the UI to reflect the termination.
+     */
+    document.querySelector("#stopAttackButton").addEventListener("click", function () {
+        if (!currentAttackId) {
+            alert("No attack is currently running."); // Alert if no attack is active
+            return;
+        }
+
+        // Send a POST request to stop the attack
+        fetch(`/stop_attack/${currentAttackId}`, { method: "POST" })
+            .then(response => response.json())
+            .then(() => {
+                // Update the progress status
+                document.querySelector("#progressStatus").innerText = "Attack stopped.";
+
+                // Reset the attack ID
+                currentAttackId = null;
+
+                // Disable the 'Stop Attack' button
+                document.querySelector("#stopAttackButton").disabled = true;
+            })
+            .catch(error => {
+                // Display error message in the progress status alert
+                document.querySelector("#progressStatus").innerText = `Error: ${error.message}`;
+            });
+    });
+
+    /**
+     * Function to Poll Attack Progress
+     * - Continuously checks the progress of the ongoing attack at regular intervals.
+     * - Updates the progress status alert with real-time information.
+     * - Stops polling when the attack is completed or terminated.
+     * 
+     * @param {string} attackId - The unique identifier of the attack to monitor.
+     */
+    function pollProgress(attackId) {
+        const interval = setInterval(() => {
+            if (!currentAttackId) {
+                clearInterval(interval); // Stop polling if attack is stopped
+                return;
+            }
+
+            // Send a GET request to fetch the current progress of the attack
+            fetch(`/progress/${attackId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.progress.includes("completed")) {
+                        // If the attack is completed, update the status and stop polling
+                        document.querySelector("#progressStatus").innerText = "Attack completed.";
+                        clearInterval(interval);
+
+                        // Disable the 'Stop Attack' button as the attack has ended
+                        document.querySelector("#stopAttackButton").disabled = true;
+
+                        // Optionally, show attack details in the modal
+                        showAttackDetails(data.details);
+                    } else {
+                        // Update the progress status with current progress information
+                        document.querySelector("#progressStatus").innerText = data.progress;
+
+                        // Optionally, update the attack details in real-time
+                        showAttackDetails(data.details);
+                    }
+                })
+                .catch(error => {
+                    // Display error message in the progress status alert
+                    document.querySelector("#progressStatus").innerText = `Error: ${error.message}`;
+                    clearInterval(interval); // Stop polling on error
+
+                    // Disable the 'Stop Attack' button as the attack state is uncertain
+                    document.querySelector("#stopAttackButton").disabled = true;
+                });
+        }, 1000); // Poll every 1 second
+    }
+
+    /**
+     * Function to Display Attack Details in Modal
+     * - Populates and shows the modal with detailed information about the attack.
+     * 
+     * @param {object} details - An object containing detailed information about the attack.
+     */
+    function showAttackDetails(details) {
+        // Construct the HTML content for the modal
+        let detailsHtml = "<ul>";
+        for (const [key, value] of Object.entries(details)) {
+            detailsHtml += `<li><strong>${key.replace('_', ' ').toUpperCase()}:</strong> ${value}</li>`;
+        }
+        detailsHtml += "</ul>";
+
+        // Insert the details into the modal body
+        document.querySelector("#detailsContent").innerHTML = detailsHtml;
+
+        // Show the modal
+        $('#detailsModal').modal('show');
+    }
+</script>
+{% endblock %}

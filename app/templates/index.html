@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3">Welcome to Check Point Demo Server</h1>
+    <p class="lead text-muted">Simulate attacks, generate malware files, and test your security infrastructure.</p>
+</div>
+
+<!-- Feature Cards -->
+<div class="row g-4 justify-content-center">
+    <!-- IPS Attacks -->
+    <div class="col-md-4">
+        <div class="card h-100 text-center border-0 shadow-sm hover-card">
+            <div class="card-body p-4">
+                <div class="mb-3 text-primary">
+                    <i class="bi bi-shield-exclamation" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="card-title h4 mb-3">IPS Attacks</h3>
+                <p class="card-text text-muted mb-4">Simulate various network attacks to test your Intrusion Prevention System. These simulations are controlled and safe.</p>
+                <a href="/ips" class="btn btn-primary stretched-link">Go to IPS Attacks</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Malware Files -->
+    <div class="col-md-4">
+        <div class="card h-100 text-center border-0 shadow-sm hover-card">
+            <div class="card-body p-4">
+                <div class="mb-3 text-danger">
+                    <i class="bi bi-bug" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="card-title h4 mb-3">Malware Files</h3>
+                <p class="card-text text-muted mb-4">Download real malware samples organized by category. <br><strong class="text-danger">WARNING: Handle with care!</strong></p>
+                <a href="/av" class="btn btn-outline-danger stretched-link">Get Malware Files</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Generator -->
+    <div class="col-md-4">
+        <div class="card h-100 text-center border-0 shadow-sm hover-card">
+            <div class="card-body p-4">
+                <div class="mb-3 text-success">
+                    <i class="bi bi-file-earmark-richtext" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="card-title h4 mb-3">File Generator</h3>
+                <p class="card-text text-muted mb-4">Generate custom files (PDF, DOCX) with embedded content to evaluate Threat Emulation and Extraction.</p>
+                <a href="/te" class="btn btn-success stretched-link">Generate Files</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

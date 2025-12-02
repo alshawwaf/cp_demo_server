@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+
+</br>
+<div class="container bg-secondary text-light">
+    </br></br>
+    <h5 class="text-dark">Server with certificate for Inbound HTTPS Inspection</h5>
+    </br>
+    <form method="get" action="/download_cert">
+        <button type="submit" class="btn btn-info text-dark">Download the Server Certificate</button>
+    </form>
+    </br></br>
+    <p class="text-dark">Use the Certificate above to test the inbound HTTPS Inspection Feature. Password:
+        vpn123!
+    </p>
+    </br></br>
+</div>
+
+{% endblock %}

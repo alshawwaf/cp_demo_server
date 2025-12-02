@@ -1,0 +1,395 @@
+:root {
+    /* Color Palette */
+    --primary-color: #2563eb; /* Modern Blue */
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b; /* Slate */
+    --accent-color: #ec4899; /* Pink/Magenta for highlights */
+    --background-color: #f8fafc; /* Light Slate */
+    --card-bg: #ffffff;
+    --text-main: #1e293b; /* Dark Slate */
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --transition-speed: 0.3s;
+}
+
+[data-theme="dark"] {
+    --primary-color: #3b82f6;
+    --primary-hover: #60a5fa;
+    --secondary-color: #94a3b8;
+    --background-color: #0f172a; /* Dark Slate */
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-muted: #cbd5e1;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+/* Dark Mode Overrides for Bootstrap Utilities & Elements */
+[data-theme="dark"] .bg-light {
+    background-color: #334155 !important; /* Darker gray for "light" backgrounds in dark mode */
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .badge.bg-light {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] ol, 
+[data-theme="dark"] ul, 
+[data-theme="dark"] span {
+    color: inherit;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-main);
+    line-height: 1.6;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Text Overrides for Dark Mode */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-dark {
+    color: var(--text-main) !important;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--card-bg) !important;
+    box-shadow: var(--shadow-sm);
+    padding: 1rem 0;
+    transition: background-color var(--transition-speed);
+}
+
+.navbar-brand img {
+    height: 32px;
+    width: auto;
+}
+
+.nav-link {
+    color: var(--text-main) !important;
+    font-weight: 500;
+    margin-left: 1rem;
+    transition: color 0.2s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color) !important;
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, background-color var(--transition-speed);
+    margin-bottom: 1.5rem;
+    color: var(--text-main); /* Ensure card text uses main color */
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    color: var(--text-main);
+}
+
+.card-text {
+    color: var(--text-main);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Tables */
+.table {
+    color: var(--text-main);
+    border-color: var(--border-color);
+    --bs-table-bg: transparent; /* Override Bootstrap's default table background */
+    --bs-table-color: var(--text-main);
+    --bs-table-border-color: var(--border-color);
+}
+
+.table thead th {
+    background-color: var(--background-color);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.table tbody td {
+    background-color: var(--card-bg); /* Ensure cells have the correct background */
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    color: var(--text-main);
+}
+
+.table-hover tbody tr:hover td {
+    background-color: rgba(37, 99, 235, 0.05); /* Subtle primary tint */
+    color: var(--text-main);
+}
+
+/* Notifications */
+#notificationContainer {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1060;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Allow clicks through container */
+}
+
+.notification {
+    pointer-events: auto;
+    min-width: 300px;
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--card-bg);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary-color);
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-main);
+}
+
+.notification-success { border-left-color: var(--success-color); }
+.notification-danger { border-left-color: var(--danger-color); }
+.notification-warning { border-left-color: var(--warning-color); }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Footer */
+.footer {
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* Dark Mode Toggle */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.theme-toggle:hover {
+    background-color: var(--border-color);
+}
+
+/* Form Controls in Dark Mode */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--background-color);
+    color: var(--text-main);
+    border-color: var(--primary-color);
+}
+
+/* Modal Dark Mode Support */
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-body {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Card Headers in Dark Mode */
+[data-theme="dark"] .card-header.bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+/* Table Light Headers in Dark Mode */
+[data-theme="dark"] .table-light {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .table-light th {
+    color: var(--text-main) !important;
+}
+
+/* Improve input contrast in dark mode */
+[data-theme="dark"] .form-control.bg-white {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #1e293b !important;
+}
+
+[data-theme="dark"] .form-control.bg-white::placeholder {
+    color: #64748b !important;
+}
+
+/* Table Row Hover Effects */
+#ips_data tbody tr {
+    transition: background 0.2s;
+}
+
+#ips_data tbody tr:hover {
+    background: linear-gradient(to right, #f8f9fa, #ffffff) !important;
+}
+
+[data-theme="dark"] #ips_data tbody tr:hover {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.08)) !important;
+}
+
+/* DataTables Dark Mode */
+[data-theme="dark"] .dataTables_filter label,
+[data-theme="dark"] .dataTables_length label,
+[data-theme="dark"] .dataTables_info {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dataTables_filter input,
+[data-theme="dark"] .dataTables_length select {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .dataTables_filter input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+}
+
+[data-theme="dark"] .dataTables_paginate .paginate_button {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dataTables_paginate .paginate_button:hover {
+    background: var(--border-color) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dataTables_paginate .paginate_button.current {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+/* Table Cell Overflow Handling */
+#ips_data td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Protection Name column - allow normal width */
+#ips_data td:nth-child(2) {
+    max-width: none;
+}
+
+/* Badge columns - keep single line */
+#ips_data td:nth-child(3), /* Industry */
+#ips_data td:nth-child(4), /* Confidence */
+#ips_data td:nth-child(5), /* Severity */
+#ips_data td:nth-child(6)  /* Performance */ {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Make badges truncate with ellipsis */
+#ips_data .badge {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    cursor: help;
+}
+
