@@ -4,7 +4,6 @@
 venv*/
 __pycache__/
 app/__pycache__/
-app/data/malware_samples
 dist/
 .coverage*
 htmlcov/
