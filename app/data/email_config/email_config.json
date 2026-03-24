@@ -1,9 +1,10 @@
 {
-    "smtp_server": "203.0.113.250",
+    "smtp_server": "localhost",
     "port": "25",
-    "sender_email": "info@americas-ses.com",
-    "encryption_type": "None",
-    "default_recipient": "cpadmin@americas-ses.com",
-    "email_subject": "Generated file is attached",
-    "email_body": "File Generator Email Service"
+    "encryption_type": "NONE",
+    "sender_email": "demo@localhost",
+    "sender_password": "",
+    "default_recipient": "demo@localhost",
+    "email_subject": "Demo File",
+    "email_body": "Please find the attached file."
 }

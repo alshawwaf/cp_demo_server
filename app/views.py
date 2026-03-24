@@ -18,6 +18,23 @@ Modules:
 """
 
 from . import app
+from functools import wraps
+from werkzeug.security import check_password_hash, generate_password_hash
+
+# Single admin account for demo server
+_ADMIN_USER = 'admin'
+_ADMIN_HASH = generate_password_hash('Cpwins!1@2026!')
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
 from flask_mail import Mail, Message
 from app.attack_generator import execute_attack
 from app.db import load_protections, get_protection_by_name
@@ -42,6 +59,8 @@ import requests
 import os, json
 import threading
 import mimetypes
+import io
+from app import crypto_util
 
 # If you're using Flasgger
 from flasgger import Swagger
@@ -56,6 +75,7 @@ attack_stop_events = {}
 
 @app.route("/", methods=["GET"])
 @app.route("/index", methods=["GET"])
+@login_required
 def index():
     """
     Render the home page.
@@ -172,6 +192,7 @@ def handle_post_request(protection_name, target_ip):
 
 
 @app.route('/api/run_attack', methods=['POST'])
+@login_required
 def api_run_attack():
     """
     API Endpoint to run a single attack.
@@ -193,6 +214,7 @@ def api_run_attack():
 
 
 @app.route('/ips', methods=['GET', 'POST'])
+@login_required
 def ips():
     """
     Handle IPS (Intrusion Prevention System) protections.
@@ -244,6 +266,7 @@ def ips():
 
 
 @app.route('/clear_target_ip', methods=['POST'])
+@login_required
 def clear_target_ip():
     """
     Clear the saved target IP address from the session.
@@ -262,6 +285,7 @@ def clear_target_ip():
 
 @app.route('/av', defaults={'req_path': ''})
 @app.route('/av/<path:req_path>')
+@login_required
 def dir_listing(req_path):
     """
     List files and directories in the AV (Antivirus) section.
@@ -291,14 +315,33 @@ def dir_listing(req_path):
         app.logger.warning(f"Directory traversal attempt blocked: {abs_path}")
         return abort(403)
 
-    if not os.path.exists(abs_path):
+    if not os.path.exists(abs_path) and not os.path.exists(abs_path + crypto_util.ENC_SUFFIX):
         app.logger.warning(f"Path not found: {abs_path}")
         return abort(404)
 
-    # If the path is a file, serve it as a download
+    # If the path is a file, serve it (decrypt on-the-fly if encrypted)
     if os.path.isfile(abs_path):
         app.logger.info(f"Sending file: {abs_path}")
+        enc_path = crypto_util.find_enc(abs_path)
+        if enc_path:
+            buf = crypto_util.decrypt_to_bytes(enc_path)
+            original_name = os.path.basename(abs_path)
+            mime_type, _ = mimetypes.guess_type(original_name)
+            return send_file(buf, as_attachment=True,
+                             download_name=original_name,
+                             mimetype=mime_type or 'application/octet-stream')
         return send_file(abs_path, as_attachment=True)
+
+    # File doesn't exist as-is - check for an encrypted-only version
+    enc_path = crypto_util.find_enc(abs_path)
+    if enc_path and os.path.isfile(enc_path):
+        app.logger.info(f"Decrypting and sending: {enc_path}")
+        buf = crypto_util.decrypt_to_bytes(enc_path)
+        original_name = os.path.basename(abs_path)
+        mime_type, _ = mimetypes.guess_type(original_name)
+        return send_file(buf, as_attachment=True,
+                         download_name=original_name,
+                         mimetype=mime_type or 'application/octet-stream')
 
     # If it's a directory, list contents
     folders = req_path.split('/') if req_path else []
@@ -311,12 +354,27 @@ def dir_listing(req_path):
     files_with_paths = []
     try:
         for file in os.listdir(abs_path):
-            file_path = os.path.join(abs_path, file)
+            if file.endswith(crypto_util.ENC_SUFFIX):
+                continue  # handled below as the original name
+            file_abs = os.path.join(abs_path, file)
             files_with_paths.append({
                 'name': file,
                 'path': os.path.join(req_path, file) if req_path else file,
-                'is_file': os.path.isfile(file_path)
+                'is_file': os.path.isfile(file_abs),
+                'encrypted': bool(crypto_util.find_enc(file_abs)),
             })
+        # Surface files that exist only as .enc (original removed after encryption)
+        for file in os.listdir(abs_path):
+            if not file.endswith(crypto_util.ENC_SUFFIX):
+                continue
+            original_name = file[:-len(crypto_util.ENC_SUFFIX)]
+            if not os.path.exists(os.path.join(abs_path, original_name)):
+                files_with_paths.append({
+                    'name': original_name,
+                    'path': os.path.join(req_path, original_name) if req_path else original_name,
+                    'is_file': True,
+                    'encrypted': True,
+                })
         app.logger.debug(f"Files and directories: {files_with_paths}")
     except Exception as e:
         app.logger.error(f"Error accessing directory {abs_path}: {e}")
@@ -326,6 +384,7 @@ def dir_listing(req_path):
 
 
 @app.route('/delete/<filename>', methods=['POST'])
+@login_required
 def delete_file(filename):
     """
     Delete a specific generated file.
@@ -354,6 +413,7 @@ def delete_file(filename):
 
 
 @app.route('/delete_all', methods=['POST'])
+@login_required
 def delete_all_files():
     """
     Delete all generated files.
@@ -376,6 +436,7 @@ def delete_all_files():
 
 
 @app.route('/te')
+@login_required
 def te():
     """
     Render the Threat Emulation (TE) page.
@@ -405,6 +466,7 @@ def te():
 
 
 @app.route('/generate', methods=['POST'])
+@login_required
 def generate():
     """
     Generate files based on user-selected parameters.
@@ -519,6 +581,7 @@ def generate():
 
 
 @app.route('/download/<filename>')
+@login_required
 def download_file(filename):
     """
     Serve a file for download from the generated files directory.
@@ -556,6 +619,12 @@ def download_file(filename):
     # Override MIME type for .exe
     if filename.lower().endswith('.exe'):
         mime_type = 'application/x-msdownload'
+
+    enc_path = crypto_util.find_enc(file_path)
+    if enc_path:
+        app.logger.info(f"Decrypting and serving: {enc_path}")
+        buf = crypto_util.decrypt_to_bytes(enc_path)
+        return send_file(buf, as_attachment=True, download_name=filename, mimetype=mime_type)
 
     app.logger.info(f"Serving file for download: {file_path} with MIME type: {mime_type}")
     return send_file(file_path, as_attachment=True, mimetype=mime_type)
@@ -639,6 +708,28 @@ def download_cert():
     return send_file(path, as_attachment=True)
 
 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('logged_in'):
+        return redirect(url_for('index'))
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+        if username == _ADMIN_USER and check_password_hash(_ADMIN_HASH, password):
+            session['logged_in'] = True
+            session.permanent = True
+            return redirect(url_for('index'))
+        error = 'Invalid credentials'
+    return render_template('login.html', error=error)
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 # Load email configuration
 CONFIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'email_config')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'email_config.json')
@@ -670,6 +761,7 @@ if not email_config:
 
 
 @app.route('/send_email/<filename>', methods=['POST'])
+@login_required
 def send_email_route(filename):
     """
     Send an email with a specified file as an attachment.
@@ -746,6 +838,7 @@ def send_email_route(filename):
 
 
 @app.route('/email_config', methods=['GET', 'POST'])
+@login_required
 def email_config():
     """
     Configure or display the current email settings.

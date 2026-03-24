@@ -1,5 +1,5 @@
 # Use official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -23,7 +23,7 @@ WORKDIR /usr/src/app/
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN python -m pip install --no-cache-dir --upgrade pip && python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip setuptools && python -m pip install --no-cache-dir --no-build-isolation -r requirements.txt
 
 
 # Copy the entire project into the container
