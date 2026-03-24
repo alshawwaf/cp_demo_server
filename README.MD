@@ -9,7 +9,6 @@
 
 A Flask-based threat prevention demo server for testing Check Point security controls locally — IPS triggers, real malware downloads, and threat emulation file generation.
 
-![Demo](https://github.com/alshawwaf/cp_demo_server/blob/GA/app/data/readme_assets/cp_demo_server_demo.gif)
 
 ---
 
