@@ -163,9 +163,26 @@
 .btn-sm-action.danger:hover { background: rgba(220,38,38,.08); }
 
 /* Modal */
-.modal-content { border-radius: 14px !important; border: 1px solid var(--border-color) !important; }
-.modal-header  { padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border-color) !important; }
+.modal-content { border-radius: 14px !important; border: 1px solid var(--border-color) !important; background: var(--card-bg) !important; color: var(--text-main) !important; }
+.modal-header  { padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border-color) !important; background: var(--card-bg) !important; }
+.modal-body    { background: var(--card-bg) !important; }
 .modal-footer  { padding: .8rem 1.4rem; border-top: 1px solid var(--border-color) !important; background: var(--background-color) !important; border-radius: 0 0 14px 14px !important; }
+.modal-content .form-label { color: var(--text-main) !important; }
+.modal-content .form-control,
+.modal-content .form-select {
+  background-color: var(--background-color) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+.modal-content .form-control::placeholder { color: var(--text-muted) !important; opacity: 1; }
+.modal-content .form-control:focus,
+.modal-content .form-select:focus {
+  background-color: var(--background-color) !important;
+  color: var(--text-main) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 .2rem rgba(37,99,235,.2) !important;
+}
+.modal-content .form-select option { background: var(--card-bg); color: var(--text-main); }
 
 /* Options section divider */
 .opts-section {
