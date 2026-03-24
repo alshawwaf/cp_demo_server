@@ -1,377 +1,554 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<style>
+  /* ── IPS Page ─────────────────────────────────────────── */
+  .ips-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+  .ips-header-left { display: flex; align-items: center; gap: 1rem; }
+  .ips-icon-wrap {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(37,99,235,0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary-color); font-size: 1.4rem; flex-shrink: 0;
+  }
+  .ips-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0; }
+  .ips-subtitle { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+  /* Live indicator */
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--success-color);
+    animation: pulse-dot 2s infinite;
+    margin-right: 5px;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.6; transform:scale(1.3); }
+  }
+
+  /* IP input strip */
+  .ip-strip {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px; padding: .5rem .75rem;
+  }
+  .ip-strip label { font-size:.8rem; font-weight:600; color:var(--text-muted); white-space:nowrap; margin:0; }
+  .ip-strip .form-control {
+    border: none; background: transparent; padding: .25rem .5rem;
+    font-size: .9rem; color: var(--text-main); width: 170px;
+    box-shadow: none !important;
+  }
+  .ip-strip .form-control:focus { outline: none; }
+  .ip-clear-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    padding: 0 .25rem; font-size:.9rem; line-height:1;
+    transition: color .2s;
+  }
+  .ip-clear-btn:hover { color: var(--danger-color); }
+
+  /* Stat cards */
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .875rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .stat-icon.blue  { background:rgba(37,99,235,.12);  color:#2563eb; }
+  .stat-icon.red   { background:rgba(239,68,68,.12);  color:#ef4444; }
+  .stat-icon.amber { background:rgba(245,158,11,.12); color:#d97706; }
+  .stat-icon.green { background:rgba(16,185,129,.12); color:#10b981; }
+  .stat-label { font-size:.72rem; color:var(--text-muted); font-weight:500; margin:0; text-transform:uppercase; letter-spacing:.04em; }
+  .stat-value { font-size:1.4rem; font-weight:700; color:var(--text-main); line-height:1.1; }
+
+  /* Table card */
+  .table-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .table-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .table-card-header h6 { margin:0; font-weight:700; font-size:.9rem; color:var(--text-main); }
+
+  /* Run All button */
+  .btn-run-all {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: var(--primary-color); color: #fff; border: none;
+    border-radius: 8px; padding: .45rem .9rem;
+    font-size: .82rem; font-weight: 600; cursor: pointer;
+    transition: background .2s, transform .1s, box-shadow .2s;
+    box-shadow: 0 2px 8px rgba(37,99,235,.3);
+  }
+  .btn-run-all:hover { background: var(--primary-hover); transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.4); }
+  .btn-run-all:active { transform:translateY(0); }
+
+  /* Trigger button per row */
+  .btn-trigger {
+    width: 30px; height: 30px; border-radius: 7px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.2);
+    color: var(--primary-color); cursor: pointer; transition: all .2s; font-size: .85rem;
+  }
+  .btn-trigger:hover { background: var(--primary-color); color:#fff; border-color:var(--primary-color); transform:scale(1.1); }
+
+  /* Severity badges */
+  .sev-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .25rem .6rem; border-radius: 6px;
+    font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+  }
+  .sev-critical { background:rgba(239,68,68,.12);  color:#dc2626; border:1px solid rgba(239,68,68,.25); }
+  .sev-high     { background:rgba(249,115,22,.12); color:#ea580c; border:1px solid rgba(249,115,22,.25); }
+  .sev-medium   { background:rgba(245,158,11,.12); color:#d97706; border:1px solid rgba(245,158,11,.25); }
+  .sev-low      { background:rgba(100,116,139,.1); color:var(--text-muted); border:1px solid var(--border-color); }
+  .sev-info     { background:rgba(37,99,235,.1);   color:var(--primary-color); border:1px solid rgba(37,99,235,.2); }
+
+  /* Confidence badges */
+  .conf-high   { background:rgba(16,185,129,.12); color:#059669; border:1px solid rgba(16,185,129,.25); }
+  .conf-medium { background:rgba(245,158,11,.12); color:#d97706; border:1px solid rgba(245,158,11,.25); }
+  .conf-low    { background:rgba(100,116,139,.1); color:var(--text-muted); border:1px solid var(--border-color); }
+
+  /* Industry pill */
+  .industry-pill {
+    display: inline-block; padding: .2rem .55rem; border-radius: 6px;
+    font-size: .7rem; font-weight: 600; background: rgba(37,99,235,.08);
+    color: var(--primary-color); border: 1px solid rgba(37,99,235,.15);
+    max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help;
+  }
+
+  /* Performance pill */
+  .perf-pill {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .2rem .55rem; border-radius: 6px; font-size: .7rem; font-weight: 600;
+    background: var(--background-color); color: var(--text-muted);
+    border: 1px solid var(--border-color);
+  }
+
+  /* Modal terminal log */
+  .attack-terminal {
+    background: #0d1117; color: #e6edf3;
+    border-radius: 10px; padding: 1rem;
+    font-family: 'JetBrains Mono','Fira Mono','Courier New',monospace;
+    font-size: .78rem; line-height: 1.6;
+    max-height: 340px; overflow-y: auto;
+    border: 1px solid #30363d;
+  }
+  .attack-terminal::-webkit-scrollbar { width: 5px; }
+  .attack-terminal::-webkit-scrollbar-track { background: #161b22; }
+  .attack-terminal::-webkit-scrollbar-thumb { background: #30363d; border-radius:3px; }
+  .log-success { color: #3fb950; }
+  .log-error   { color: #f85149; }
+  .log-running { color: #58a6ff; }
+  .log-warn    { color: #d29922; }
+  .log-muted   { color: #8b949e; }
+
+  /* Progress bar */
+  .attack-progress-bar {
+    height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;
+    margin-bottom: .75rem;
+  }
+  .attack-progress-fill {
+    height: 100%; background: var(--primary-color);
+    border-radius: 2px; transition: width .3s ease; width: 0%;
+  }
+
+  /* Status chip */
+  .status-chip {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .25rem .65rem; border-radius: 20px; font-size: .75rem; font-weight: 600;
+  }
+  .status-ready     { background:rgba(100,116,139,.1); color:var(--text-muted); }
+  .status-running   { background:rgba(37,99,235,.12);  color:var(--primary-color); }
+  .status-paused    { background:rgba(245,158,11,.12); color:#d97706; }
+  .status-done      { background:rgba(16,185,129,.12); color:#059669; }
+  .status-cancelled { background:rgba(239,68,68,.12);  color:#dc2626; }
+
+  /* Modal overrides */
+  .modal-content { border-radius: 14px !important; border: 1px solid var(--border-color) !important; }
+  .modal-header  { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color) !important; }
+  .modal-footer  { padding: .875rem 1.5rem; border-top: 1px solid var(--border-color) !important; background: var(--background-color) !important; border-radius: 0 0 14px 14px !important; }
+
+  /* DataTables tweaks */
+  .dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px !important; padding: .35rem .7rem !important;
+    font-size: .82rem !important;
+  }
+  .dataTables_wrapper .dataTables_length select {
+    border-radius: 8px !important; padding: .3rem .5rem !important;
+    font-size: .82rem !important;
+  }
+
+  /* Spin animation for run all */
+  .spin { animation: spin 1s linear infinite; display:inline-block; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Hero Section with Gradient -->
-<div class="card border-0 shadow-lg mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-    <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="mb-1 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>IPS Protections</h2>
-                <p class="mb-0 opacity-75">Intrusion Prevention System - Attack Simulation</p>
-            </div>
-            
-            <!-- Target IP Input Group -->
-            <div class="d-flex align-items-center gap-2 bg-white bg-opacity-25 rounded p-3">
-                <label for="target_ip" class="form-label mb-0 fw-medium text-nowrap">Target IP:</label>
-                <input type="text" id="target_ip" name="target_ip" class="form-control form-control-sm bg-white"
-                    style="width: 200px;" placeholder="192.168.1.1" value="{{ saved_ip }}" required>
-                
-                <form action="{{ url_for('clear_target_ip') }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-light" title="Clear Target IP">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<div class="ips-header">
+  <div class="ips-header-left">
+    <div class="ips-icon-wrap">
+      <i class="bi bi-shield-shaded"></i>
     </div>
+    <div>
+      <p class="ips-title">IPS Protections</p>
+      <p class="ips-subtitle">
+        <span class="live-dot"></span>Intrusion Prevention System &mdash; Attack Simulation
+      </p>
+    </div>
+  </div>
+
+  <!-- Target IP -->
+  <div class="ip-strip">
+    <label for="target_ip"><i class="bi bi-bullseye me-1"></i>Target IP</label>
+    <input type="text" id="target_ip" name="target_ip"
+      class="form-control" placeholder="192.168.1.1"
+      value="{{ saved_ip }}" autocomplete="off" required>
+    <form action="{{ url_for('clear_target_ip') }}" method="POST" class="d-inline m-0">
+      <button type="submit" class="ip-clear-btn" title="Clear target IP">
+        <i class="bi bi-x-circle"></i>
+      </button>
+    </form>
+  </div>
 </div>
 
-<!-- Main Protections Table -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 pt-4 pb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2"></i>Protection Library</h5>
-            <button id="runAllBtn" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                <i class="bi bi-play-circle-fill me-2"></i>Run All Sequentially
-            </button>
-        </div>
+<!-- ── Stats Row ────────────────────────────────────────────────────────────── -->
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <p class="stat-label">Total Rules</p>
+        <p class="stat-value">{{ data|length }}</p>
+      </div>
     </div>
-    
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table id="ips_data" class="table table-hover align-middle mb-0">
-                <thead style="background: linear-gradient(to right, #f8f9fa, #e9ecef);">
-                    <tr>
-                        <th scope="col" class="text-center py-3" style="width: 80px;">Action</th>
-                        <th scope="col" class="py-3">Protection Name</th>
-                        <th scope="col" class="py-3" style="width: 100px;">Industry</th>
-                        <th scope="col" class="py-3" style="width: 110px;">Confidence</th>
-                        <th scope="col" class="py-3" style="width: 110px;">Severity</th>
-                        <th scope="col" class="py-3" style="width: 110px;">Performance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for line in data %}
-                    <tr data-protection-name="{{ line[0] }}" class="border-bottom" style="transition: all 0.2s;">
-                        <td class="text-center">
-                            <form action="{{ url_for('ips') }}" method="POST" class="d-inline">
-                                <input type="hidden" name="protection_name" value="{{ line[0] }}">
-                                <input type="hidden" name="target_ip" class="target_ip_form" value="">
-                                <button class="btn btn-sm btn-outline-primary shadow-sm" type="submit" title="Run {{ line[0] }}">
-                                    <i class="bi bi-play-fill"></i>
-                                </button>
-                            </form>
-                        </td>
-                        <td class="fw-medium">{{ line[0] }}</td>
-                        <td>
-                            <span class="badge rounded-pill" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" title="{{ line[1] }}">
-                                {{ line[1] }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if line[5] == 'High' %}
-                                <span class="badge bg-success rounded-pill px-3"><i class="bi bi-star-fill me-1"></i>High</span>
-                            {% elif line[5] == 'Medium' %}
-                                <span class="badge bg-warning text-dark rounded-pill px-3"><i class="bi bi-star-half me-1"></i>Medium</span>
-                            {% else %}
-                                <span class="badge bg-secondary rounded-pill px-3"><i class="bi bi-star me-1"></i>Low</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if line[6] == 'Critical' %}
-                                <span class="badge rounded-pill px-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><i class="bi bi-exclamation-triangle-fill me-1"></i>Critical</span>
-                            {% elif line[6] == 'High' %}
-                                <span class="badge bg-danger rounded-pill px-3"><i class="bi bi-exclamation-circle-fill me-1"></i>High</span>
-                            {% else %}
-                                <span class="badge bg-info rounded-pill px-3">{{ line[6] }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border rounded-pill px-3">
-                                <i class="bi bi-speedometer2 me-1"></i>{{ line[7] }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-exclamation-octagon"></i></div>
+      <div>
+        <p class="stat-label">Critical</p>
+        <p class="stat-value" id="criticalCount">—</p>
+      </div>
     </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-patch-check"></i></div>
+      <div>
+        <p class="stat-label">High Confidence</p>
+        <p class="stat-value" id="highConfidence">—</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-activity"></i></div>
+      <div>
+        <p class="stat-label">Status</p>
+        <p class="stat-value" style="font-size:1rem;">
+          <span class="live-dot"></span>Active
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Statistics Cards - Compact Version -->
-<div class="row g-2 mb-3">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="card-body text-white text-center py-2">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.5rem; opacity: 0.9;"></i>
-                    <div class="text-start">
-                        <h5 class="mb-0 fw-bold">{{ data|length }}</h5>
-                        <small class="opacity-75">Total Protections</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <div class="card-body text-white text-center py-2">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-fire" style="font-size: 1.5rem; opacity: 0.9;"></i>
-                    <div class="text-start">
-                        <h5 class="mb-0 fw-bold" id="criticalCount">0</h5>
-                        <small class="opacity-75">Critical Severity</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="card-body text-white text-center py-2">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-shield-check" style="font-size: 1.5rem; opacity: 0.9;"></i>
-                    <div class="text-start">
-                        <h5 class="mb-0 fw-bold" id="highConfidence">0</h5>
-                        <small class="opacity-75">High Confidence</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="card-body text-white text-center py-2">
-                <div class="d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-cpu" style="font-size: 1.5rem; opacity: 0.9;"></i>
-                    <div class="text-start">
-                        <h5 class="mb-0 fw-bold">Active</h5>
-                        <small class="opacity-75">System Status</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- ── Protection Table ─────────────────────────────────────────────────────── -->
+<div class="table-card mb-4">
+  <div class="table-card-header">
+    <h6><i class="bi bi-list-task me-2 text-primary"></i>Protection Library</h6>
+    <button id="runAllBtn" class="btn-run-all">
+      <i class="bi bi-play-circle-fill"></i>Run All Sequentially
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table id="ips_data" class="table table-hover align-middle mb-0" style="font-size:.84rem;">
+      <thead>
+        <tr>
+          <th class="text-center py-3 ps-3" style="width:56px;">Run</th>
+          <th class="py-3">Protection Name</th>
+          <th class="py-3" style="width:100px;">Industry</th>
+          <th class="py-3" style="width:115px;">Confidence</th>
+          <th class="py-3" style="width:115px;">Severity</th>
+          <th class="py-3 pe-3" style="width:115px;">Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in data %}
+        <tr data-protection-name="{{ line[0] }}">
+          <td class="text-center ps-3">
+            <form action="{{ url_for('ips') }}" method="POST" class="d-inline">
+              <input type="hidden" name="protection_name" value="{{ line[0] }}">
+              <input type="hidden" name="target_ip" class="target_ip_form" value="">
+              <button class="btn-trigger" type="submit" title="Trigger {{ line[0] }}">
+                <i class="bi bi-play-fill"></i>
+              </button>
+            </form>
+          </td>
+          <td class="fw-500">{{ line[0] }}</td>
+          <td>
+            <span class="industry-pill" title="{{ line[1] }}">{{ line[1] }}</span>
+          </td>
+          <td>
+            {% if line[5] == 'High' %}
+              <span class="sev-badge conf-high"><i class="bi bi-shield-fill-check" style="font-size:.65rem;"></i>High</span>
+            {% elif line[5] == 'Medium' %}
+              <span class="sev-badge conf-medium"><i class="bi bi-shield-half" style="font-size:.65rem;"></i>Medium</span>
+            {% else %}
+              <span class="sev-badge conf-low"><i class="bi bi-shield" style="font-size:.65rem;"></i>Low</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if line[6] == 'Critical' %}
+              <span class="sev-badge sev-critical"><i class="bi bi-record-circle-fill" style="font-size:.55rem;"></i>Critical</span>
+            {% elif line[6] == 'High' %}
+              <span class="sev-badge sev-high"><i class="bi bi-record-circle-fill" style="font-size:.55rem;"></i>High</span>
+            {% elif line[6] == 'Medium' %}
+              <span class="sev-badge sev-medium"><i class="bi bi-record-circle-fill" style="font-size:.55rem;"></i>Medium</span>
+            {% elif line[6] == 'Low' %}
+              <span class="sev-badge sev-low"><i class="bi bi-record-circle-fill" style="font-size:.55rem;"></i>Low</span>
+            {% else %}
+              <span class="sev-badge sev-info"><i class="bi bi-info-circle" style="font-size:.65rem;"></i>{{ line[6] }}</span>
+            {% endif %}
+          </td>
+          <td class="pe-3">
+            <span class="perf-pill">
+              <i class="bi bi-speedometer2"></i>{{ line[7] }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<!-- Sequential Attacks Modal -->
+<!-- ── Sequential Attacks Modal ─────────────────────────────────────────────── -->
 <div class="modal fade" id="sequentialAttacksModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <h5 class="modal-title fw-bold"><i class="bi bi-play-circle-fill me-2"></i>Sequential Attack Execution</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <div class="d-flex justify-content-between align-items-center text-white">
-                                <span class="fw-bold">Status:</span>
-                                <span id="attackStatus" class="badge bg-white text-dark">Ready</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <div class="d-flex justify-content-between align-items-center text-white">
-                                <span class="fw-bold">Progress:</span>
-                                <span id="attackProgress" class="fw-bold">0 / 0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Log Container -->
-                <div id="attackLog" class="border rounded p-3" style="max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.875rem; background: rgba(0,0,0,0.02);">
-                    <div class="text-muted">Waiting to start...</div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 bg-light">
-                <button type="button" id="pauseResumeBtn" class="btn btn-warning shadow-sm" disabled>
-                    <i class="bi bi-pause-fill me-1"></i>Pause
-                </button>
-                <button type="button" id="cancelBtn" class="btn btn-danger shadow-sm" disabled>
-                    <i class="bi bi-x-circle-fill me-1"></i>Cancel
-                </button>
-            </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <div class="stat-icon blue" style="width:36px;height:36px;border-radius:9px;font-size:1rem;">
+            <i class="bi bi-terminal"></i>
+          </div>
+          <div>
+            <h6 class="mb-0 fw-bold">Sequential Attack Execution</h6>
+            <small class="text-muted" id="modalSubtitle">Ready to start</small>
+          </div>
         </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Progress & status row -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span id="attackStatus" class="status-chip status-ready">
+            <i class="bi bi-circle"></i> Ready
+          </span>
+          <small class="text-muted fw-600" id="attackProgress">0 / 0</small>
+        </div>
+        <div class="attack-progress-bar mb-3">
+          <div class="attack-progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Terminal log -->
+        <div class="attack-terminal" id="attackLog">
+          <span class="log-muted">$ Waiting to start&hellip;</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="pauseResumeBtn" class="btn btn-sm btn-warning fw-600 px-3" disabled>
+          <i class="bi bi-pause-fill me-1"></i>Pause
+        </button>
+        <button type="button" id="cancelBtn" class="btn btn-sm btn-danger fw-600 px-3" disabled>
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+      </div>
+
     </div>
+  </div>
 </div>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-        // Calculate statistics
-        let criticalCount = 0;
-        let highConfidence = 0;
-        
-        {% for line in data %}
-            {% if line[6] == 'Critical' %}
-                criticalCount++;
-            {% endif %}
-            {% if line[5] == 'High' %}
-                highConfidence++;
-            {% endif %}
-        {% endfor %}
-        
-        $('#criticalCount').text(criticalCount);
-        $('#highConfidence').text(highConfidence);
+$(document).ready(function () {
 
-        // Initialize DataTables with custom styling
-        const table = $('#ips_data').DataTable({
-            scrollY: '60vh',
-            scrollCollapse: true,
-            colReorder: true,
-            autoWidth: false,
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search protections...",
-                lengthMenu: "Show _MENU_ entries"
-            },
-            dom: '<"d-flex justify-content-between align-items-center mb-3 px-3 pt-3"fl>rt<"d-flex justify-content-between align-items-center mt-3 px-3 pb-3"ip>',
-            drawCallback: function () {
-                updateTargetIpForms();
-            }
-        });
+  // ── Stats ────────────────────────────────────────────────────────────────
+  let criticalCount = 0, highConfidence = 0;
+  {% for line in data %}
+    {% if line[6] == 'Critical' %} criticalCount++; {% endif %}
+    {% if line[5] == 'High' %}     highConfidence++; {% endif %}
+  {% endfor %}
+  $('#criticalCount').text(criticalCount);
+  $('#highConfidence').text(highConfidence);
 
-        // Target IP Sync Logic
-        function updateTargetIpForms() {
-            const targetIp = $('#target_ip').val();
-            $('.target_ip_form').val(targetIp);
-        }
+  // ── DataTable ────────────────────────────────────────────────────────────
+  const table = $('#ips_data').DataTable({
+    scrollY: '56vh',
+    scrollCollapse: true,
+    colReorder: true,
+    autoWidth: false,
+    language: {
+      search: "_INPUT_",
+      searchPlaceholder: "Search protections…",
+      lengthMenu: "Show _MENU_"
+    },
+    dom: '<"d-flex justify-content-between align-items-center px-3 py-2"fl>rt<"d-flex justify-content-between align-items-center px-3 py-2"ip>',
+    drawCallback: updateTargetIpForms
+  });
 
-        $('#target_ip').on('input', updateTargetIpForms);
-        updateTargetIpForms();
+  // ── IP sync ───────────────────────────────────────────────────────────────
+  function updateTargetIpForms() {
+    $('.target_ip_form').val($('#target_ip').val());
+  }
+  $('#target_ip').on('input', updateTargetIpForms);
+  updateTargetIpForms();
 
-        // Add hover effect to table rows
-        $('#ips_data tbody tr').hover(
-            function() { $(this).css('background', 'linear-gradient(to right, #f8f9fa, #ffffff)'); },
-            function() { $(this).css('background', ''); }
-        );
+  // ── Sequential run ────────────────────────────────────────────────────────
+  let attackQueue = [], currentIndex = 0;
+  let isPaused = false, isCancelled = false;
+  const modal = new bootstrap.Modal(document.getElementById('sequentialAttacksModal'));
 
-        // Sequential Attack Logic
-        let attackQueue = [];
-        let currentIndex = 0;
-        let isPaused = false;
-        let isCancelled = false;
-        const modal = new bootstrap.Modal(document.getElementById('sequentialAttacksModal'));
+  $('#runAllBtn').on('click', function () {
+    const targetIp = $('#target_ip').val().trim();
+    if (!targetIp) { showNotification('Please enter a target IP address.', 'warning'); return; }
 
-        $('#runAllBtn').on('click', function() {
-            const targetIp = $('#target_ip').val();
-            if (!targetIp) {
-                showNotification('Please enter a target IP address.', 'warning');
-                return;
-            }
-
-            attackQueue = [];
-            $('#ips_data tbody tr').each(function() {
-                const protectionName = $(this).data('protection-name');
-                if (protectionName) {
-                    attackQueue.push(protectionName);
-                }
-            });
-
-            if (attackQueue.length === 0) {
-                showNotification('No attacks found to run.', 'warning');
-                return;
-            }
-
-            currentIndex = 0;
-            isPaused = false;
-            isCancelled = false;
-
-            $('#attackProgress').text(`0 / ${attackQueue.length}`);
-            $('#attackStatus').removeClass().addClass('badge bg-info text-white').text('Running');
-            $('#attackLog').html('<div class="text-info"><i class="bi bi-arrow-repeat spin me-2"></i>Starting sequential execution...</div>');
-            $('#pauseResumeBtn').prop('disabled', false).html('<i class="bi bi-pause-fill me-1"></i>Pause');
-            $('#cancelBtn').prop('disabled', false);
-
-            modal.show();
-            executeNextAttack(targetIp);
-        });
-
-        function executeNextAttack(targetIp) {
-            if (isCancelled) {
-                $('#attackStatus').removeClass().addClass('badge bg-danger text-white').text('Cancelled');
-                $('#pauseResumeBtn').prop('disabled', true);
-                $('#cancelBtn').prop('disabled', true);
-                return;
-            }
-
-            if (isPaused) {
-                $('#attackStatus').removeClass().addClass('badge bg-warning text-dark').text('Paused');
-                return;
-            }
-
-            if (currentIndex >= attackQueue.length) {
-                $('#attackStatus').removeClass().addClass('badge bg-success text-white').text('Completed');
-                $('#pauseResumeBtn').prop('disabled', true);
-                $('#cancelBtn').prop('disabled', true);
-                appendLog('<div class="text-success fw-bold mt-3 p-2 rounded" style="background: rgba(25, 135, 84, 0.1);"><i class="bi bi-check-circle-fill me-2"></i>All attacks completed successfully!</div>');
-                return;
-            }
-
-            const protectionName = attackQueue[currentIndex];
-            $('#attackProgress').text(`${currentIndex + 1} / ${attackQueue.length}`);
-            appendLog(`<div class="text-primary my-1"><i class="bi bi-arrow-right-circle me-2"></i><strong>${protectionName}</strong></div>`);
-
-            fetch('/api/run_attack', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    protection_name: protectionName,
-                    target_ip: targetIp
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const statusClass = data.success ? 'text-success' : 'text-danger';
-                const icon = data.success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
-                const bgClass = data.success ? 'rgba(25, 135, 84, 0.1)' : 'rgba(220, 53, 69, 0.1)';
-                appendLog(`<div class="${statusClass} mb-2 p-2 rounded" style="background: ${bgClass};"><i class="bi ${icon} me-2"></i>${data.message} <span class="badge bg-secondary ms-2">${data.status_code}</span></div>`);
-                
-                currentIndex++;
-                setTimeout(() => executeNextAttack(targetIp), 100);
-            })
-            .catch(error => {
-                appendLog(`<div class="text-danger mb-2 p-2 rounded" style="background: rgba(220, 53, 69, 0.1);"><i class="bi bi-x-circle-fill me-2"></i>Error: ${error.message}</div>`);
-                currentIndex++;
-                setTimeout(() => executeNextAttack(targetIp), 100);
-            });
-        }
-
-        function appendLog(html) {
-            const logContainer = $('#attackLog');
-            logContainer.append(html);
-            logContainer.scrollTop(logContainer[0].scrollHeight);
-        }
-
-        $('#pauseResumeBtn').on('click', function() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                $(this).html('<i class="bi bi-play-fill me-1"></i>Resume');
-                $('#attackStatus').removeClass().addClass('badge bg-warning text-dark').text('Paused');
-            } else {
-                $(this).html('<i class="bi bi-pause-fill me-1"></i>Pause');
-                $('#attackStatus').removeClass().addClass('badge bg-info text-white').text('Running');
-                executeNextAttack($('#target_ip').val());
-            }
-        });
-
-        $('#cancelBtn').on('click', function() {
-            isCancelled = true;
-            $('#attackStatus').removeClass().addClass('badge bg-danger text-white').text('Cancelled');
-            $('#pauseResumeBtn').prop('disabled', true);
-            $(this).prop('disabled', true);
-            appendLog('<div class="text-danger fw-bold mt-3 p-2 rounded" style="background: rgba(220, 53, 69, 0.1);"><i class="bi bi-x-octagon-fill me-2"></i>Execution cancelled by user</div>');
-            
-            // Close modal after a short delay
-            setTimeout(() => modal.hide(), 1000);
-        });
+    attackQueue = [];
+    $('#ips_data tbody tr').each(function () {
+      const name = $(this).data('protection-name');
+      if (name) attackQueue.push(name);
     });
+    if (!attackQueue.length) { showNotification('No attacks in current view.', 'warning'); return; }
+
+    currentIndex = 0; isPaused = false; isCancelled = false;
+
+    setStatus('running', 'Running');
+    $('#attackProgress').text('0 / ' + attackQueue.length);
+    $('#modalSubtitle').text('Running ' + attackQueue.length + ' protections against ' + targetIp);
+    $('#progressFill').css('width', '0%');
+    $('#attackLog').html('<span class="log-muted">$ Starting sequential execution…</span>');
+    $('#pauseResumeBtn').prop('disabled', false).html('<i class="bi bi-pause-fill me-1"></i>Pause');
+    $('#cancelBtn').prop('disabled', false);
+
+    modal.show();
+    executeNextAttack(targetIp);
+  });
+
+  function executeNextAttack(targetIp) {
+    if (isCancelled) { finalize('cancelled'); return; }
+    if (isPaused)    { setStatus('paused', 'Paused'); return; }
+
+    if (currentIndex >= attackQueue.length) {
+      finalize('done');
+      appendLog('<br><span class="log-success fw-bold">✓ All ' + attackQueue.length + ' protections executed.</span>');
+      return;
+    }
+
+    const name = attackQueue[currentIndex];
+    const pct  = Math.round((currentIndex / attackQueue.length) * 100);
+    $('#attackProgress').text((currentIndex + 1) + ' / ' + attackQueue.length);
+    $('#progressFill').css('width', pct + '%');
+    appendLog('<br><span class="log-running">▶ [' + (currentIndex+1) + '/' + attackQueue.length + '] ' + escHtml(name) + '</span>');
+
+    fetch('/api/run_attack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ protection_name: name, target_ip: targetIp })
+    })
+    .then(r => r.json())
+    .then(data => {
+      const cls = data.success ? 'log-success' : 'log-error';
+      const sym = data.success ? '✓' : '✗';
+      appendLog('<span class="' + cls + '">  ' + sym + ' ' + escHtml(data.message) + ' <span class="log-muted">[' + data.status_code + ']</span></span>');
+      currentIndex++;
+      setTimeout(() => executeNextAttack(targetIp), 80);
+    })
+    .catch(err => {
+      appendLog('<span class="log-error">  ✗ Error: ' + escHtml(err.message) + '</span>');
+      currentIndex++;
+      setTimeout(() => executeNextAttack(targetIp), 80);
+    });
+  }
+
+  function finalize(state) {
+    $('#progressFill').css('width', state === 'done' ? '100%' : $('#progressFill').css('width'));
+    setStatus(state, state === 'done' ? 'Completed' : state === 'cancelled' ? 'Cancelled' : 'Paused');
+    $('#pauseResumeBtn').prop('disabled', true);
+    $('#cancelBtn').prop('disabled', true);
+  }
+
+  function setStatus(state, label) {
+    const map = { ready:'status-ready', running:'status-running', paused:'status-paused', done:'status-done', cancelled:'status-cancelled' };
+    const icons = { ready:'bi-circle', running:'bi-arrow-repeat spin', paused:'bi-pause-circle', done:'bi-check-circle-fill', cancelled:'bi-x-circle-fill' };
+    $('#attackStatus')
+      .removeClass('status-ready status-running status-paused status-done status-cancelled')
+      .addClass(map[state])
+      .html('<i class="bi ' + icons[state] + '"></i> ' + label);
+  }
+
+  function appendLog(html) {
+    const el = document.getElementById('attackLog');
+    el.innerHTML += html;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  $('#pauseResumeBtn').on('click', function () {
+    isPaused = !isPaused;
+    if (isPaused) {
+      $(this).html('<i class="bi bi-play-fill me-1"></i>Resume');
+      setStatus('paused', 'Paused');
+    } else {
+      $(this).html('<i class="bi bi-pause-fill me-1"></i>Pause');
+      setStatus('running', 'Running');
+      executeNextAttack($('#target_ip').val());
+    }
+  });
+
+  $('#cancelBtn').on('click', function () {
+    isCancelled = true;
+    appendLog('<br><span class="log-error">✗ Execution cancelled by user.</span>');
+    setTimeout(() => modal.hide(), 900);
+  });
+
+});
 </script>
 {% endblock %}
