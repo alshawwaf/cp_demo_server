@@ -1,313 +1,565 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<style>
+/* ── TE / Threat Emulation ────────────────────────────── */
+.te-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1.25rem 1.5rem;
+  background: var(--card-bg); border: 1px solid var(--border-color);
+  border-radius: 14px; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+.te-icon-wrap {
+  width: 46px; height: 46px; border-radius: 11px; flex-shrink: 0;
+  background: rgba(124,58,237,.1); color: #7c3aed;
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+}
+.te-title   { font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0; }
+.te-subtitle{ font-size: .78rem;  color: var(--text-muted); margin: 0; }
+
+/* Panel wrapper */
+.panel {
+  background: var(--card-bg); border: 1px solid var(--border-color);
+  border-radius: 13px; box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .875rem 1.125rem; border-bottom: 1px solid var(--border-color);
+}
+.panel-head h6 { margin: 0; font-size: .85rem; font-weight: 700; color: var(--text-main); }
+.panel-body { padding: 1.125rem; }
+
+/* Section label */
+.sec-label {
+  font-size: .68rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: .6rem;
+}
+
+/* Format chips */
+.format-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-bottom: 1rem;
+}
+.fmt-chip {
+  position: relative; cursor: pointer;
+}
+.fmt-chip input[type="checkbox"] {
+  position: absolute; opacity: 0; width: 0; height: 0;
+}
+.fmt-chip-label {
+  display: flex; flex-direction: column; align-items: center; gap: .2rem;
+  padding: .5rem .3rem; border-radius: 9px;
+  border: 1.5px solid var(--border-color); background: var(--background-color);
+  font-size: .68rem; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; transition: all .18s; user-select: none; text-align: center;
+}
+.fmt-chip-label i { font-size: 1.1rem; }
+.fmt-chip input:checked + .fmt-chip-label {
+  border-color: #7c3aed; background: rgba(124,58,237,.1); color: #7c3aed;
+}
+.fmt-chip-label:hover { border-color: #7c3aed; color: #7c3aed; }
+
+/* Option toggles */
+.opt-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .45rem 0; border-bottom: 1px solid var(--border-color);
+}
+.opt-row:last-child { border-bottom: none; }
+.opt-label { font-size: .8rem; color: var(--text-main); display: flex; align-items: center; gap: .4rem; }
+.opt-label i { color: var(--text-muted); font-size: .8rem; }
+
+/* Bootstrap switch overrides */
+.form-check-input { cursor: pointer; }
+.form-check-input:checked { background-color: #7c3aed; border-color: #7c3aed; }
+.form-check-input:focus { box-shadow: 0 0 0 .2rem rgba(124,58,237,.25); }
+
+/* URL select */
+.url-select {
+  border: 1px solid var(--border-color); border-radius: 8px;
+  background: var(--background-color); color: var(--text-main);
+  font-size: .8rem; padding: .35rem .6rem; width: 100%;
+}
+
+/* Generate button */
+.btn-generate {
+  width: 100%; padding: .6rem; border-radius: 9px; border: none;
+  background: #7c3aed; color: #fff; font-size: .85rem; font-weight: 700;
+  cursor: pointer; transition: background .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 2px 8px rgba(124,58,237,.3); display: flex; align-items: center; justify-content: center; gap: .45rem;
+}
+.btn-generate:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,58,237,.4); }
+.btn-generate:active { transform: translateY(0); }
+
+/* Select all / none */
+.sel-link { font-size: .7rem; color: var(--primary-color); cursor: pointer; text-decoration: none; }
+.sel-link:hover { text-decoration: underline; }
+
+/* Files table */
+.files-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.files-table th {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-muted); padding: .6rem .875rem; border-bottom: 2px solid var(--border-color);
+  background: var(--background-color); white-space: nowrap;
+}
+.files-table td {
+  padding: .6rem .875rem; border-bottom: 1px solid var(--border-color);
+  color: var(--text-main); vertical-align: middle;
+}
+.files-table tr:last-child td { border-bottom: none; }
+.files-table tr:hover td { background: rgba(124,58,237,.04); }
+
+.type-badge {
+  display: inline-block; padding: .18rem .5rem; border-radius: 5px; font-size: .68rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  background: rgba(124,58,237,.1); color: #7c3aed; border: 1px solid rgba(124,58,237,.2);
+}
+
+/* Action buttons */
+.act-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border-color);
+  background: var(--card-bg); color: var(--text-muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: .78rem;
+  transition: all .18s; text-decoration: none;
+}
+.act-btn:hover { transform: scale(1.1); }
+.act-btn.dl:hover  { background: #2563eb; border-color: #2563eb; color: #fff; }
+.act-btn.mail:hover{ background: #0891b2; border-color: #0891b2; color: #fff; }
+.act-btn.info:hover{ background: #7c3aed; border-color: #7c3aed; color: #fff; }
+.act-btn.del:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+/* Details row */
+.details-row td { padding: 0 !important; border-bottom: none !important; }
+.details-inner {
+  padding: .6rem .875rem .75rem;
+  background: var(--background-color); border-top: 1px dashed var(--border-color);
+  font-size: .75rem;
+}
+.detail-pill {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .18rem .5rem; border-radius: 5px; font-size: .68rem; font-weight: 600;
+  margin: .15rem;
+}
+.detail-pill.on  { background: rgba(16,185,129,.12); color: #059669; border: 1px solid rgba(16,185,129,.25); }
+.detail-pill.off { background: var(--background-color); color: var(--text-muted); border: 1px solid var(--border-color); }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2.5rem; color: var(--text-muted); text-align: center;
+}
+.empty-state i { font-size: 2.5rem; opacity: .25; margin-bottom: .75rem; }
+.empty-state p { font-size: .82rem; margin: 0; }
+
+/* Header action buttons */
+.btn-sm-action {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .3rem .65rem; border-radius: 7px; font-size: .75rem; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border-color);
+  background: var(--card-bg); color: var(--text-main); text-decoration: none;
+  transition: all .18s;
+}
+.btn-sm-action:hover { background: var(--background-color); }
+.btn-sm-action.danger { color: #dc2626; border-color: rgba(220,38,38,.3); }
+.btn-sm-action.danger:hover { background: rgba(220,38,38,.08); }
+
+/* Modal */
+.modal-content { border-radius: 14px !important; border: 1px solid var(--border-color) !important; }
+.modal-header  { padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border-color) !important; }
+.modal-footer  { padding: .8rem 1.4rem; border-top: 1px solid var(--border-color) !important; background: var(--background-color) !important; border-radius: 0 0 14px 14px !important; }
+
+/* Options section divider */
+.opts-section {
+  border: 1px solid var(--border-color); border-radius: 10px; padding: .75rem .875rem;
+  margin-bottom: .75rem; display: none;
+}
+.opts-section-title {
+  font-size: .68rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: .6rem;
+  display: flex; align-items: center; gap: .35rem;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row g-4">
-    <!-- Generator Form Section -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-transparent">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus me-2"></i>Generate Files</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="/generate" id="fileGenForm">
-                    
-                    <!-- File Types -->
-                    <div class="mb-4">
-                        <label for="file_types" class="form-label fw-medium">Select File Types</label>
-                        <select name="file_types" id="file_types" multiple class="form-select" size="5" required>
-                            {% for file_type in file_types %}
-                            <option value="{{ file_type }}">{{ file_type.upper() }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="form-text">Hold Ctrl/Cmd to select multiple.</div>
-                    </div>
 
-                    <!-- Dynamic Options -->
-                    <div class="vstack gap-3">
-                        <!-- Common Options -->
-                        <div id="include_image" style="display: none;">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="include_image" id="switch_image">
-                                <label class="form-check-label" for="switch_image">Include Image</label>
-                            </div>
-                        </div>
-
-                        <div id="url_type" style="display: none;">
-                            <label for="url_type_select" class="form-label fw-medium">URL Type</label>
-                            <select name="url_type" id="url_type_select" class="form-select form-select-sm">
-                                <option value="none">No URL</option>
-                                <option value="clean">Random URL</option>
-                                <option value="malicious">Malicious URL</option>
-                            </select>
-                        </div>
-
-                        <div id="include_sensitive_link" style="display: none;">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="include_sensitive_link" id="switch_sensitive">
-                                <label class="form-check-label" for="switch_sensitive">Include Sensitive Link (SMB)</label>
-                            </div>
-                        </div>
-
-                        <!-- PDF Specific Options -->
-                        <div id="pdf-options-container" class="border-top pt-3 mt-2" style="display: none;">
-                            <h6 class="text-muted text-uppercase small fw-bold mb-3">PDF Options</h6>
-                            
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_video" id="switch_video">
-                                <label class="form-check-label" for="switch_video">Include Video</label>
-                            </div>
-                            
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_audio" id="switch_audio">
-                                <label class="form-check-label" for="switch_audio">Include Audio</label>
-                            </div>
-
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_3d" id="switch_3d">
-                                <label class="form-check-label" for="switch_3d">Include 3D Art</label>
-                            </div>
-
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_script" id="switch_script">
-                                <label class="form-check-label" for="switch_script">Include Embedded Script</label>
-                            </div>
-
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_pdf" id="switch_pdf">
-                                <label class="form-check-label" for="switch_pdf">Include External PDF</label>
-                            </div>
-
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_external_app" id="switch_app">
-                                <label class="form-check-label" for="switch_app">Launch External App</label>
-                            </div>
-
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="include_data_submission" id="switch_data">
-                                <label class="form-check-label" for="switch_data">Submit Data Remotely</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-gear-fill me-2"></i>Generate File(s)
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<div class="te-header">
+  <div class="d-flex align-items: center; gap: .875rem; align-items: center;">
+    <div class="te-icon-wrap"><i class="bi bi-file-earmark-code-fill"></i></div>
+    <div style="margin-left:.875rem;">
+      <p class="te-title">Threat Emulation</p>
+      <p class="te-subtitle">Generate malicious test files to trigger TE protections</p>
     </div>
-
-    <!-- Generated Files List -->
-    <div class="col-lg-8">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Generated Files</h5>
-                
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#emailConfigModal">
-                        <i class="bi bi-envelope-gear me-1"></i>Config Email
-                    </button>
-                    
-                    <form method="POST" action="/delete_all" class="d-inline">
-                        <button type="submit" class="btn btn-outline-danger btn-sm" {% if not files %}disabled{% endif %}>
-                            <i class="bi bi-trash me-1"></i>Delete All
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="generated_files_table" class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>File Name</th>
-                                <th>Type</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for file in files %}
-                            <tr>
-                                <td class="fw-medium">{{ file.name }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ file.type }}</span></td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ url_for('download_file', filename=file.name) }}" class="btn btn-outline-primary" title="Download">
-                                            <i class="bi bi-download"></i>
-                                        </a>
-                                        
-                                        <button type="button" class="btn btn-outline-info send-email-btn" data-file-name="{{ file.name }}" title="Send Email">
-                                            <i class="bi bi-envelope"></i>
-                                        </button>
-
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#details-{{ loop.index }}" title="Details">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
-
-                                        <form method="POST" action="/delete/{{ file.name }}" class="d-inline" onsubmit="return confirm('Delete this file?');">
-                                            <button type="submit" class="btn btn-outline-danger rounded-end" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    
-                                    <!-- Collapsible Details -->
-                                    <div class="collapse mt-2" id="details-{{ loop.index }}">
-                                        <div class="card card-body bg-light small p-2">
-                                            <ul class="list-unstyled mb-0">
-                                                <li><strong>URL:</strong> {{ file.url_type or "None" }}</li>
-                                                <li><strong>Image:</strong> {{ "Yes" if file.include_image == "on" else "No" }}</li>
-                                                <li><strong>Script:</strong> {{ "Yes" if file.include_script == "on" else "No" }}</li>
-                                                <li><strong>Sensitive Link:</strong> {{ "Yes" if file.include_sensitive_link == "on" else "No" }}</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span style="font-size:.75rem; color:var(--text-muted);">{{ files|length }} file{{ 's' if files|length != 1 else '' }} generated</span>
+  </div>
 </div>
 
-<!-- Email Config Modal -->
+<div class="row g-3">
+
+  <!-- ── Generator Form ───────────────────────────────────────────────────── -->
+  <div class="col-lg-4">
+    <div class="panel">
+      <div class="panel-head">
+        <h6><i class="bi bi-sliders me-2 text-purple" style="color:#7c3aed;"></i>File Generator</h6>
+      </div>
+      <div class="panel-body">
+        <form method="POST" action="/generate" id="fileGenForm">
+
+          <!-- Format picker -->
+          <p class="sec-label">Format</p>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:.7rem; color:var(--text-muted);">Select one or more</span>
+            <div>
+              <span class="sel-link me-2" id="selAll">All</span>
+              <span class="sel-link" id="selNone">None</span>
+            </div>
+          </div>
+          <div class="format-grid">
+            {% set fmt_icons = {
+              'pdf':       ('bi-file-earmark-pdf',   'PDF'),
+              'docx':      ('bi-file-earmark-word',  'DOCX'),
+              'pptx':      ('bi-file-earmark-ppt',   'PPTX'),
+              'xlsx':      ('bi-file-earmark-excel', 'XLSX'),
+              'rtf':       ('bi-file-earmark-text',  'RTF'),
+              'exe':       ('bi-terminal-fill',      'EXE'),
+              'exe-64bit': ('bi-terminal',           'EXE 64'),
+              'elf':       ('bi-filetype-raw',       'ELF'),
+              'dylib':     ('bi-apple',              'DYLIB'),
+              'jpg':       ('bi-file-earmark-image', 'JPG'),
+              'png':       ('bi-file-earmark-image', 'PNG'),
+              'bmp':       ('bi-image',              'BMP'),
+              'gif':       ('bi-film',               'GIF'),
+              'tiff':      ('bi-file-earmark-image', 'TIFF')
+            } %}
+            {% for ft in file_types %}
+              {% set icon_info = fmt_icons.get(ft, ('bi-file-earmark', ft.upper())) %}
+              <label class="fmt-chip">
+                <input type="checkbox" name="file_types" value="{{ ft }}" class="fmt-checkbox">
+                <span class="fmt-chip-label">
+                  <i class="bi {{ icon_info[0] }}"></i>
+                  {{ icon_info[1] }}
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+
+          <!-- Common options (shown dynamically) -->
+          <div id="common-opts" class="opts-section">
+            <div class="opts-section-title"><i class="bi bi-gear"></i>Common Options</div>
+
+            <div id="url-type-row" class="opt-row" style="display:none;">
+              <span class="opt-label"><i class="bi bi-link-45deg"></i>URL Type</span>
+              <select name="url_type" id="url_type_select" class="url-select" style="width:130px;">
+                <option value="none">No URL</option>
+                <option value="clean">Random URL</option>
+                <option value="malicious">Malicious URL</option>
+              </select>
+            </div>
+
+            <div id="img-row" class="opt-row" style="display:none;">
+              <label class="opt-label" for="switch_image"><i class="bi bi-image"></i>Include Image</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_image" id="switch_image" role="switch">
+              </div>
+            </div>
+
+            <div id="smb-row" class="opt-row" style="display:none;">
+              <label class="opt-label" for="switch_sensitive"><i class="bi bi-hdd-network"></i>Sensitive SMB Link</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_sensitive_link" id="switch_sensitive" role="switch">
+              </div>
+            </div>
+          </div>
+
+          <!-- PDF-specific options -->
+          <div id="pdf-opts" class="opts-section">
+            <div class="opts-section-title"><i class="bi bi-file-earmark-pdf"></i>PDF Options</div>
+
+            <div class="opt-row">
+              <label class="opt-label" for="switch_script"><i class="bi bi-code-slash"></i>Embedded Script</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_script" id="switch_script" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_video"><i class="bi bi-camera-video"></i>Video Annotation</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_video" id="switch_video" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_audio"><i class="bi bi-music-note"></i>Audio Annotation</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_audio" id="switch_audio" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_3d"><i class="bi bi-box"></i>3D Content</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_3d" id="switch_3d" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_pdf"><i class="bi bi-paperclip"></i>External PDF</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_pdf" id="switch_pdf" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_app"><i class="bi bi-app-indicator"></i>Launch External App</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_external_app" id="switch_app" role="switch">
+              </div>
+            </div>
+            <div class="opt-row">
+              <label class="opt-label" for="switch_data"><i class="bi bi-send"></i>Submit Data Remotely</label>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" name="include_data_submission" id="switch_data" role="switch">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-generate mt-2">
+            <i class="bi bi-magic"></i>Generate File(s)
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Generated Files ──────────────────────────────────────────────────── -->
+  <div class="col-lg-8">
+    <div class="panel" style="overflow:visible;">
+      <div class="panel-head">
+        <h6><i class="bi bi-collection me-2" style="color:#7c3aed;"></i>
+          Generated Files
+          {% if files %}<span style="font-size:.72rem; font-weight:500; color:var(--text-muted);">({{ files|length }})</span>{% endif %}
+        </h6>
+        <div class="d-flex gap-2">
+          <button class="btn-sm-action" data-bs-toggle="modal" data-bs-target="#emailConfigModal">
+            <i class="bi bi-envelope-gear"></i>Email Config
+          </button>
+          <form method="POST" action="/delete_all" class="d-inline">
+            <button type="submit" class="btn-sm-action danger" {% if not files %}disabled style="opacity:.45;"{% endif %}>
+              <i class="bi bi-trash3"></i>Delete All
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {% if files %}
+      <div style="overflow-x:auto;">
+        <table class="files-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">File Name</th>
+              <th>Type</th>
+              <th>URL</th>
+              <th class="text-end pe-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in files %}
+            <tr>
+              <td class="fw-500" style="font-size:.8rem; word-break:break-all;">{{ file.name }}</td>
+              <td><span class="type-badge">{{ file.type }}</span></td>
+              <td style="font-size:.75rem; color:var(--text-muted);">{{ file.url_type or '—' }}</td>
+              <td class="text-end pe-3">
+                <div class="d-flex align-items-center justify-content-end gap-1">
+                  <a href="{{ url_for('download_file', filename=file.name) }}"
+                     class="act-btn dl" title="Download"><i class="bi bi-download"></i></a>
+                  <button class="act-btn mail send-email-btn" data-file-name="{{ file.name }}" title="Send Email">
+                    <i class="bi bi-envelope"></i></button>
+                  <button class="act-btn info" title="Details"
+                    data-bs-toggle="collapse" data-bs-target="#det-{{ loop.index }}">
+                    <i class="bi bi-info-circle"></i></button>
+                  <form method="POST" action="/delete/{{ file.name }}" class="d-inline">
+                    <button type="submit" class="act-btn del" title="Delete"><i class="bi bi-trash3"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <!-- Details collapse row -->
+            <tr class="details-row">
+              <td colspan="4">
+                <div class="collapse" id="det-{{ loop.index }}">
+                  <div class="details-inner">
+                    <span class="detail-pill {{ 'on' if file.include_image == 'on' else 'off' }}">
+                      <i class="bi bi-image"></i>Image
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_script == 'on' else 'off' }}">
+                      <i class="bi bi-code-slash"></i>Script
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_sensitive_link == 'on' else 'off' }}">
+                      <i class="bi bi-hdd-network"></i>SMB Link
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_video == 'on' else 'off' }}">
+                      <i class="bi bi-camera-video"></i>Video
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_audio == 'on' else 'off' }}">
+                      <i class="bi bi-music-note"></i>Audio
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_3d == 'on' else 'off' }}">
+                      <i class="bi bi-box"></i>3D
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_external_app == 'on' else 'off' }}">
+                      <i class="bi bi-app-indicator"></i>Ext App
+                    </span>
+                    <span class="detail-pill {{ 'on' if file.include_data_submission == 'on' else 'off' }}">
+                      <i class="bi bi-send"></i>Data Sub
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-collection"></i>
+        <p>No files generated yet.<br>Choose formats and click Generate.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Email Config Modal ────────────────────────────────────────────────────── -->
 <div class="modal fade" id="emailConfigModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Configure Email Server</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="emailConfigForm">
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label">SMTP Server</label>
-                            <input type="text" class="form-control" id="smtp_server" name="smtp_server" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Port</label>
-                            <input type="number" class="form-control" id="port" name="port" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Sender Email</label>
-                            <input type="email" class="form-control" id="sender_email" name="sender_email" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Recipient Email</label>
-                            <input type="email" class="form-control" id="default_recipient" name="default_recipient">
-                        </div>
-                         <div class="col-md-12">
-                            <label class="form-label">Encryption</label>
-                            <select class="form-select" id="encryption_type" name="encryption_type">
-                                <option value="STARTTLS">STARTTLS</option>
-                                <option value="SSL">SSL/TLS</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveEmailConfig">Save Configuration</button>
-            </div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(37,99,235,.1);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+            <i class="bi bi-envelope-gear"></i>
+          </div>
+          <h6 class="mb-0 fw-bold">Email Server Configuration</h6>
         </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="emailConfigForm">
+          <div class="row g-3">
+            <div class="col-8">
+              <label class="form-label" style="font-size:.78rem;font-weight:600;">SMTP Server</label>
+              <input type="text" class="form-control form-control-sm" id="smtp_server" name="smtp_server" placeholder="smtp.example.com">
+            </div>
+            <div class="col-4">
+              <label class="form-label" style="font-size:.78rem;font-weight:600;">Port</label>
+              <input type="number" class="form-control form-control-sm" id="port" name="port" placeholder="25">
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="font-size:.78rem;font-weight:600;">Sender Email</label>
+              <input type="email" class="form-control form-control-sm" id="sender_email" name="sender_email">
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="font-size:.78rem;font-weight:600;">Default Recipient</label>
+              <input type="email" class="form-control form-control-sm" id="default_recipient" name="default_recipient">
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="font-size:.78rem;font-weight:600;">Encryption</label>
+              <select class="form-select form-select-sm" id="encryption_type" name="encryption_type">
+                <option value="STARTTLS">STARTTLS</option>
+                <option value="SSL">SSL/TLS</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary fw-600 px-3" id="saveEmailConfig">Save</button>
+      </div>
     </div>
+  </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-        // Initialize DataTable
-        $('#generated_files_table').DataTable({
-            responsive: true,
-            language: { searchPlaceholder: "Search files..." },
-            dom: 'frtip'
-        });
+$(document).ready(function () {
 
-        // File Type Logic
-        $('#file_types').on('change', function () {
-            const selected = $(this).val() || [];
-            const isPdf = selected.some(t => t.includes('pdf') || t === 'all');
-            const isDoc = selected.some(t => ['docx', 'pptx', 'xlsx', 'rtf'].some(ext => t.includes(ext)));
-            const isImg = selected.some(t => ['jpg', 'gif', 'bmp', 'png', 'tiff'].some(ext => t.includes(ext)));
+  // ── Format chip logic ──────────────────────────────────────────────────
+  const PDF_TYPES  = ['pdf'];
+  const DOC_TYPES  = ['docx','pptx','xlsx','rtf'];
+  const IMG_TYPES  = ['jpg','png','bmp','gif','tiff'];
 
-            // Reset visibility
-            $('#pdf-options-container, #url_type, #include_image, #include_sensitive_link').hide();
+  function updateOptions() {
+    const checked = $('.fmt-checkbox:checked').map(function(){ return $(this).val(); }).get();
+    const hasPdf = checked.some(v => PDF_TYPES.includes(v));
+    const hasDoc = checked.some(v => DOC_TYPES.includes(v));
+    const hasImg = checked.some(v => IMG_TYPES.includes(v));
 
-            if (isPdf) {
-                $('#pdf-options-container, #url_type, #include_image, #include_sensitive_link').fadeIn();
-            } else if (isDoc) {
-                $('#url_type, #include_image, #include_sensitive_link').fadeIn();
-            } else if (isImg) {
-                $('#include_sensitive_link').fadeIn();
-            }
-        });
+    $('#common-opts').toggle(hasPdf || hasDoc || hasImg);
+    $('#url-type-row').toggle(hasPdf || hasDoc);
+    $('#img-row').toggle(hasPdf || hasDoc);
+    $('#smb-row').toggle(hasPdf || hasDoc || hasImg);
+    $('#pdf-opts').toggle(hasPdf);
+  }
 
-        // Email Config Loading
-        $('#emailConfigModal').on('show.bs.modal', function () {
-            fetch('/get_email_config')
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        const c = data.data;
-                        $('#smtp_server').val(c.smtp_server);
-                        $('#port').val(c.port);
-                        $('#sender_email').val(c.sender_email);
-                        $('#default_recipient').val(c.default_recipient);
-                        $('#encryption_type').val(c.encryption_type || 'STARTTLS');
-                    }
-                });
-        });
+  $('.fmt-checkbox').on('change', updateOptions);
 
-        // Save Email Config
-        $('#saveEmailConfig').click(function () {
-            const config = {
-                smtp_server: $('#smtp_server').val(),
-                port: $('#port').val(),
-                sender_email: $('#sender_email').val(),
-                default_recipient: $('#default_recipient').val(),
-                encryption_type: $('#encryption_type').val()
-            };
+  $('#selAll').on('click', function() {
+    $('.fmt-checkbox').prop('checked', true).trigger('change');
+    updateOptions();
+  });
+  $('#selNone').on('click', function() {
+    $('.fmt-checkbox').prop('checked', false).trigger('change');
+    updateOptions();
+  });
 
-            fetch("/save_email_config", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(config)
-            })
-            .then(r => r.json())
-            .then(data => {
-                showNotification(data.message, data.status === "success" ? "success" : "danger");
-                if (data.status === "success") {
-                    bootstrap.Modal.getInstance(document.getElementById('emailConfigModal')).hide();
-                }
-            });
-        });
-
-        // Send Email
-        $('.send-email-btn').click(function () {
-            const btn = $(this);
-            const originalHtml = btn.html();
-            btn.html('<span class="spinner-border spinner-border-sm"></span>').prop('disabled', true);
-            
-            const fileName = btn.data('file-name');
-            fetch(`/send_email/${fileName}`, { method: "POST" })
-                .then(r => r.json())
-                .then(data => {
-                    showNotification(data.message, data.status === "success" ? "success" : "danger");
-                })
-                .finally(() => {
-                    btn.html(originalHtml).prop('disabled', false);
-                });
-        });
+  // ── Email config load ──────────────────────────────────────────────────
+  $('#emailConfigModal').on('show.bs.modal', function () {
+    fetch('/get_email_config').then(r => r.json()).then(data => {
+      if (data.status === 'success') {
+        const c = data.data;
+        $('#smtp_server').val(c.smtp_server);
+        $('#port').val(c.port);
+        $('#sender_email').val(c.sender_email);
+        $('#default_recipient').val(c.default_recipient);
+        $('#encryption_type').val(c.encryption_type || 'STARTTLS');
+      }
     });
+  });
+
+  // ── Save email config ──────────────────────────────────────────────────
+  $('#saveEmailConfig').click(function () {
+    fetch('/save_email_config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        smtp_server: $('#smtp_server').val(),
+        port: $('#port').val(),
+        sender_email: $('#sender_email').val(),
+        default_recipient: $('#default_recipient').val(),
+        encryption_type: $('#encryption_type').val()
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      showNotification(data.message, data.status === 'success' ? 'success' : 'danger');
+      if (data.status === 'success')
+        bootstrap.Modal.getInstance(document.getElementById('emailConfigModal')).hide();
+    });
+  });
+
+  // ── Send email ─────────────────────────────────────────────────────────
+  $(document).on('click', '.send-email-btn', function () {
+    const btn = $(this);
+    const orig = btn.html();
+    btn.html('<i class="bi bi-hourglass-split"></i>').prop('disabled', true);
+    fetch('/send_email/' + btn.data('file-name'), { method: 'POST' })
+      .then(r => r.json())
+      .then(data => showNotification(data.message, data.status === 'success' ? 'success' : 'danger'))
+      .finally(() => btn.html(orig).prop('disabled', false));
+  });
+
+});
 </script>
 {% endblock %}
