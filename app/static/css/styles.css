@@ -67,6 +67,13 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     transition: background-color var(--transition-speed), color var(--transition-speed);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#content {
+    flex: 1;
 }
 
 /* Text Overrides for Dark Mode */
