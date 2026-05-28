@@ -234,8 +234,10 @@ After=network.target
 [Service]
 User=YOUR_USER
 WorkingDirectory=/path/to/cp_demo_server
+ExecStartPre=/bin/sh -c 'test -x venv/bin/python3 || (python3 -m venv venv && venv/bin/pip install -r requirements.txt)'
 ExecStart=/path/to/venv/bin/python3 run.py
 Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
@@ -244,6 +246,46 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now cp_demo_server
 ```
+
+### Troubleshooting
+
+**`status=203/EXEC` — `Unable to locate executable .../venv/bin/python3`**
+
+The venv is missing or its Python symlink is broken (commonly after an OS / Python upgrade — venvs are **not portable** and hardcode paths to the system Python they were built against).
+
+Fix by rebuilding the venv in place:
+
+```bash
+cd /path/to/cp_demo_server
+sudo apt install -y python3 python3-venv python3-pip
+rm -rf venv
+python3 -m venv venv
+venv/bin/pip install --upgrade pip
+venv/bin/pip install -r requirements.txt
+ls -l venv/bin/python3   # verify it exists
+
+sudo systemctl restart cp_demo_server
+sudo systemctl status cp_demo_server
+```
+
+The `ExecStartPre` line in the unit above makes this self-healing — on next start it will recreate the venv automatically if it's missing.
+
+### Useful systemd commands
+
+```bash
+sudo systemctl status cp_demo_server          # current state
+sudo systemctl restart cp_demo_server         # restart
+sudo systemctl stop cp_demo_server            # stop
+sudo systemctl disable --now cp_demo_server   # stop + remove from boot
+journalctl -u cp_demo_server -f               # tail logs
+journalctl -u cp_demo_server -n 200 --no-pager
+systemctl cat cp_demo_server                  # show resolved unit file
+sudo systemctl edit cp_demo_server            # drop-in override
+sudo systemctl edit --full cp_demo_server     # edit full unit
+sudo systemctl daemon-reload                  # after any manual edit
+```
+
+Unit file lives at `/etc/systemd/system/cp_demo_server.service`.
 
 ---
 
