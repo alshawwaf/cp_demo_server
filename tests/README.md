@@ -9,7 +9,7 @@ Triggers IPS (Intrusion Prevention System) attacks sequentially to test firewall
 
 **Usage:**
 ```bash
-python trigger_attacks.py --server http://SERVER_IP:5000 --target TARGET_IP --file protections_example.txt
+python trigger_attacks.py --server http://SERVER_IP:8080 --target TARGET_IP --file protections_example.txt
 ```
 
 **Features:**
@@ -23,7 +23,7 @@ Tests malware file downloads to validate anti-virus/URL filtering blocking.
 
 **Usage:**
 ```bash
-python test_malware_downloads.py --server http://SERVER_IP:5000 --file malware_files_example.txt
+python test_malware_downloads.py --server http://SERVER_IP:8080 --file malware_files_example.txt
 ```
 
 **Features:**
@@ -42,6 +42,8 @@ python test_malware_downloads.py --server http://SERVER_IP:5000 --file malware_f
 ```bash
 pip install requests beautifulsoup4
 ```
+
+> **Note:** The server's `/api/run_attack` and `/av/*` routes require an authenticated session (see the login credentials in the top-level README). These scripts issue plain requests and do not log in on their own, so run them against a server instance that is reachable with a valid session, or add the login step before use.
 
 ## Safety Notes
 

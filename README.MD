@@ -16,12 +16,11 @@ A Flask-based threat prevention demo server for testing Check Point security con
 
 | Module | Description |
 |--------|-------------|
-| **IPS Attacks** | Trigger 25+ IPS protection signatures against a target IP |
-| **Malware Samples** | Browse and download 225+ real malware samples (encrypted at rest) |
+| **IPS Attacks** | Trigger 40+ IPS protection signatures against a target IP |
+| **Malware Samples** | Browse and download 225 real malware samples (encrypted at rest) |
 | **Threat Emulation** | Generate malicious files in 14 formats with configurable payloads |
-| **Attack Simulator** | Launch network attacks: SYN flood, UDP flood, Slowloris, and more |
 | **Email Delivery** | Send generated files as email attachments via SMTP |
-| **REST API** | Full API with Swagger docs at `/apidocs/` |
+| **JSON API + Swagger** | `POST /api/run_attack` JSON endpoint; every route is documented in the Swagger UI at `/apidocs/` |
 
 ---
 
@@ -124,21 +123,25 @@ cp_demo_server/
 
 ### IPS Attacks (`/ips`)
 
-Trigger Check Point IPS signatures against a configured target IP. Supports 25+ protections. Also available via REST API:
+Trigger Check Point IPS signatures against a configured target IP. Ships with 40+ protections (loaded from `app/data/ips_protections_demo.csv`). Also available via the JSON API:
 
 ```bash
 curl -X POST http://localhost:8080/api/run_attack \
   -H "Content-Type: application/json" \
-  -d '{"protection_name": "SQL Injection", "target_ip": "192.168.1.1"}'
+  -b cookies.txt \
+  -d '{"protection_name": "SQL Injection Scanning Attempt", "target_ip": "192.168.1.1"}'
 ```
+
+> `protection_name` must match a name from `app/data/ips_protections_demo.csv` exactly. The endpoint requires an authenticated session (log in first and pass the session cookie).
 
 ### Malware Browser (`/av`)
 
-Browse and download real malware samples across 14 families. Files are decrypted in memory on download — your AV only scans the encrypted blobs on disk:
+Browse and download real malware samples across 14 categories. Files are decrypted in memory on download — your AV only scans the encrypted blobs on disk:
 
 ```
-Banking-Malware  Email-Worm  Net-Worm  Pony       RAT       Ransomware
-Spyware          Stealer     Trojan    Virus       Worm      eicar      rogues
+Banking-Malware  Email-Worm  Joke     Net-Worm  Pony       RAT
+Ransomware       Spyware     Stealer  Trojan    Virus      Worm
+eicar            rogues
 ```
 
 ### Threat Emulation (`/te`)
@@ -151,12 +154,7 @@ pdf  docx  pptx  xlsx  rtf  exe  exe-64bit  elf  dylib  jpg  png  bmp  gif  tiff
 
 Optional payload embeddings: URLs, scripts, images, video, audio, 3D content, sensitive links, data submission forms.
 
-### Attack Simulator (`/attack_generators`)
-
-```
-ICMP Flood   SYN Flood    UDP Flood     Ping of Death  ARP Poisoning
-DNS Spoofing DHCP Starvation HTTP Flood NTP Amplification Slowloris
-```
+> **Note — network attack generator:** `app/attack_generator.py` contains a Scapy-based proof-of-concept for raw network attacks (ICMP/SYN/UDP flood, Ping of Death, ARP poisoning, DNS spoofing, DHCP starvation, HTTP flood, NTP amplification, Slowloris). It is **not exposed** through any route or the navbar — there is no `/attack_generators` endpoint. Treat it as reference code only; the running app surfaces the three modules above (IPS, Malware, Threat Emulation).
 
 ---
 
