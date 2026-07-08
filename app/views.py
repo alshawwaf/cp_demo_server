@@ -17,13 +17,14 @@ Modules:
 - mimetypes: Determines the MIME type of files for proper handling.
 """
 
+import os
 from . import app
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# Single admin account for demo server
-_ADMIN_USER = 'admin'
-_ADMIN_HASH = generate_password_hash('Cpwins!1@2026!')
+# Single admin account for demo server (env-configurable; defaults for public demo)
+_ADMIN_USER = os.getenv('ADMIN_USERNAME', 'admin')
+_ADMIN_HASH = generate_password_hash(os.getenv('ADMIN_PASSWORD', 'Cpwins@2026!1'))
 
 
 def login_required(f):

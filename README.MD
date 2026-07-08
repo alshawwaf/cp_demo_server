@@ -32,7 +32,9 @@ All routes require authentication. Default credentials:
 
 | Username | Password |
 |----------|----------|
-| `admin` | `Cpwins!1@2026!` |
+| `admin` | `Cpwins@2026!1` |
+
+Override the defaults with the `ADMIN_USERNAME` and `ADMIN_PASSWORD` environment variables.
 
 ### Malware Samples — Encrypted at Rest
 
@@ -53,7 +55,7 @@ docker build -t cp_demo_server:latest .
 docker run -d --name cp_demo_server -p 8080:8080 --restart unless-stopped cp_demo_server:latest
 ```
 
-Open **http://localhost:8080** and log in with `admin / Cpwins!1@2026!`
+Open **http://localhost:8080** and log in with `admin / Cpwins@2026!1`
 
 > Malware samples are pre-encrypted in the repo. No extra steps needed — clone, build, run.
 
