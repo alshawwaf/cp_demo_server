@@ -1,0 +1,7 @@
+services:
+  cp-demo-server:
+    build: .
+    environment:
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    restart: unless-stopped
