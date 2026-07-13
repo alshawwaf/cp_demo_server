@@ -9,3 +9,8 @@ dist/
 htmlcov/
 .tox/
 docs/_build/
+
+# Runtime logs — the app writes to app/logs/. Never commit logs or stray
+# journal/traceback dumps (an ~600 KB systemd log was committed by accident).
+app/logs/
+*.log
