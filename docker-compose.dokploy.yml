@@ -1,6 +1,9 @@
 services:
   cp-demo-server:
-    build: .
+    image: ghcr.io/alshawwaf/cp_demo_server:latest
+    pull_policy: always
+    # build disabled: the image is prebuilt + published by .github/workflows/publish-image.yml; uncomment to build locally.
+    # build: .
     environment:
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
