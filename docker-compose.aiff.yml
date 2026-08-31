@@ -1,0 +1,24 @@
+# Local Docker Desktop test for the AI-Factory portal.
+#
+#   1) On the host, run the aiff-gw agent in MOCK mode (no pod needed):
+#        cd <aiff-se-workshop>/Lab-Environment/attack-demo
+#        AIFF_MOCK=1 AIFF_UI_PORT=8090 python3 aiff-demo.py
+#   2) docker compose -f docker-compose.aiff.yml up --build
+#   3) open http://localhost:8080  -> log in (admin / demo) -> "AI Factory"
+#
+# The portal (this container) proxies /aiff/api/* to the agent at AIFF_AGENT_URL.
+# host.docker.internal reaches the host from inside the container (Docker Desktop).
+services:
+  cp-demo-portal:
+    build: .
+    image: cp_demo_server:aiff
+    ports:
+      - "8080:8080"
+    environment:
+      # Local dev only: the agent runs on the Docker host (host.docker.internal == localhost).
+      AIFF_AGENT_URL: "http://host.docker.internal:8090"
+      # Login uses the app's own built-in default admin credentials (see the app README).
+      # To change them for a shared run, export ADMIN_USERNAME / ADMIN_PASSWORD in your host
+      # shell and add them here as pass-through env — never hardcode a password in this file.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
