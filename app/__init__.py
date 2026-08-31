@@ -36,3 +36,6 @@ app.logger.propagate = True  # Ensure logs propagate to Flask's default log hand
 
 # Import the views module
 from . import views
+
+# Import the AI-Factory (AIFF) portal module — the guided cross-blade demo
+from . import aiff  # noqa: E402,F401

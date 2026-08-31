@@ -3,7 +3,7 @@
     <div class="container">
         <!-- Brand -->
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/" style="font-size:.95rem; color:var(--text-main);">
-            <i class="bi bi-shield-shaded" style="color:var(--primary-color); font-size:1.2rem;"></i>Demo Server
+            <i class="bi bi-shield-shaded" style="color:var(--primary-color); font-size:1.2rem;"></i>Security Demo Portal
         </a>
 
         <!-- Mobile Toggle -->
@@ -16,6 +16,9 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/aiff' %}active{% endif %}" href="/aiff"><i class="bi bi-cpu me-1"></i>AI Factory</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == '/ips' %}active{% endif %}" href="/ips">IPS Attacks</a>
