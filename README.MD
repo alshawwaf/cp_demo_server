@@ -1,6 +1,6 @@
-# Threat Prevention Server
+# Check Point Security Demo Portal
 
-A Flask-based Check Point threat-prevention demo/data server for exercising security controls in a lab — trigger IPS signatures, download real (encrypted-at-rest) malware samples, and generate Threat Emulation test files on demand.
+A Flask-based Check Point security demo & validation portal for exercising security controls in a lab — trigger IPS signatures, download real (encrypted-at-rest) malware samples, generate Threat Emulation test files, and run the guided **AI Factory** demo that shows Access Control, Anti-Virus, and IPS protecting an AI factory across a Check Point AIFF (BlueField-3 DPU).
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-3.1.0-lightgrey.svg)
@@ -10,7 +10,7 @@ A Flask-based Check Point threat-prevention demo/data server for exercising secu
 
 Part of the [Dev Hub](https://github.com/alshawwaf/dev-hub) ecosystem — deploy the whole suite with [ubuntu-dokploy-ai](https://github.com/alshawwaf/ubuntu-dokploy-ai).
 
-> The repository is named `cp_demo_server`; the app's display name is **Threat Prevention Server**.
+> Display name: **Check Point Security Demo Portal**. The repository is being renamed to `cp-security-demo-portal` (rename it in GitHub → Settings; the clone URL and image references below update to match). Some internal identifiers (log file, `.p12` certificate, package folder) still use the old `cp_demo_server` name and are left as-is to avoid breakage.
 
 ---
 

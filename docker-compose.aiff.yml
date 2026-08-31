@@ -11,7 +11,7 @@
 services:
   cp-demo-portal:
     build: .
-    image: cp_demo_server:aiff
+    image: cp-security-demo-portal:aiff
     ports:
       - "8080:8080"
     environment:
