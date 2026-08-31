@@ -1,4 +1,4 @@
-# Check Point Security Demo Portal
+# Check Point Threat Prevention Demo Portal
 
 A Flask-based Check Point security demo & validation portal for exercising security controls in a lab — trigger IPS signatures, download real (encrypted-at-rest) malware samples, generate Threat Emulation test files, and run the guided **AI Factory** demo that shows Access Control, Anti-Virus, and IPS protecting an AI factory across a Check Point AIFF (BlueField-3 DPU).
 
